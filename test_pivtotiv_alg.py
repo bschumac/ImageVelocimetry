@@ -11,23 +11,47 @@ import datetime
 from math import sqrt
 import copy
 import scipy as sio
-
+import scipy.stats as stats
 
 
 datapath = "/home/benjamin/Met_ParametersTST/PALMS/data/"
 outpath = datapath+"tiv/"
 
-file = h5py.File(datapath+'cbl_surf.nc','r')
-Tb = file.get("tsurf*_xy")
-Tb = np.array(Tb)
-Tb = np.reshape(Tb,(3600,256,512))
+#case = "strong_wind"
+case = "no_wind"
+#case = "vertex_shedding"
+
+
+
+if case == "strong_wind":
+    file = h5py.File(datapath+'cbl_surf.nc','r')
+elif case == "no_wind": 
+    file = h5py.File(datapath+'cbl_nowind.nc','r')
+elif case == "vertex_shedding":
+    file = h5py.File(datapath+'shedding.nc','r')
+    
 
 
 u_model = file.get("u_xy")
 v_model = file.get("v_xy")
-u_model = np.reshape(u_model,(3600,256,512))
-v_model = np.reshape(v_model,(3600,256,512))
 
+
+
+if case == "strong_wind":
+       
+    u_model = np.reshape(u_model,(3600,256,512))
+    v_model = np.reshape(v_model,(3600,256,512))
+
+elif case == "no_wind":
+       
+    u_model = np.reshape(u_model,(3600,256,512))
+    v_model = np.reshape(v_model,(3600,256,512))
+    
+        
+elif case == "vertex_shedding": 
+    u_model = np.reshape(u_model,(3600,160,640))
+    v_model = np.reshape(v_model,(3600,160,640))
+   
 
 begin_value_images = 3540
 interval=6
@@ -142,7 +166,7 @@ plt.show()
 
 
 
-kmeans_test = tst_kmeans(dataset=windspeed_subset,n_clusters = 2)
+kmeans_test = tst_kmeans(dataset=windspeed_subset,n_clusters = 6)
 plt.imshow(kmeans_test[1])
 plt.colorbar()
 
@@ -160,8 +184,12 @@ contours = measure.find_contours(kmeans_test[1], 0)
 fig, ax = plt.subplots()
 ax.imshow(kmeans_test[1], interpolation='nearest', cmap=plt.cm.gray)
 
+
 for n, contour in enumerate(contours):
-    ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+    if n>4 and n <= 7:
+        ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+
+
 
 ax.axis('image')
 ax.set_xticks([])
@@ -169,17 +197,23 @@ ax.set_yticks([])
 plt.show()
 
 
+e = enumerate(contours)
+
+
+contours[-1]
+for n, contour in enumerate(contours):
+    print(contour)
 
 
 
 
+np.save("/home/benjamin/Met_ParametersTST/PALMS/data/test_kmeans.npy",kmeans_test[1])
 
 
 
-
-
-
-
+window_size=8
+overlap = 7
+search_area_size = 16
 
 
 
@@ -187,15 +221,19 @@ frame_a = windspeed[begin_value_images]
 
 frame_b = windspeed[begin_value_images+1]
 
+plt.imshow(frame_a-frame_b)
+
 u, v= window_correlation_tiv(frame_a, frame_b, window_size_x=window_size, window_size_y=0, overlap=overlap, 
                            search_area_size_x=search_area_size, search_area_size_y=0, corr_method="ssim")
         
     
 x, y = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
 
-u=np.flip(u,0)
-v=np.flip(v,0)
-    
+
+plt.figure()
+plt.imshow(frame_a)
+plt.quiver(x,y,u,v)
+plt.show()
 
 
 u_model_cut = get_org_data(frame_a=u_model[begin_value_images], search_area_size=search_area_size, overlap=overlap )
@@ -208,29 +246,21 @@ plt.colorbar()
 plt.imshow(v_model_cut)
 plt.colorbar()
 
-
-plt.imshow(u)
+u[numpy.isnan(u)]=0
+v[numpy.isnan(v)]=0
+plt.imshow(u*2, vmin = -2, vmax= 2)
 plt.colorbar()
-plt.imshow(u-u_model_cut)
+plt.imshow(v*2, vmin = -2, vmax= 2)
 plt.colorbar()
-dif_u = u-u_model_cut
-plt.hist(dif_u.flatten())
+dif_u = u*2-u_model_cut
+dif_flatten = dif_u.flatten()[~numpy.isnan(dif_u.flatten())]
+n, x, _= plt.hist(dif_flatten, bins=np.linspace(-6, 6, 50), histtype=u'step', density=True)
 
-u.shape
+density = stats.gaussian_kde(dif_flatten)
+plt.plot(x, density(x))
+plt.show()
 
-field_shape= get_field_shape(frame_a.shape, search_area_size=search_area_size, overlap=overlap )  
-
-x.shape
-y.shape
-
-
-test = frame_a[0:22,0:22]
-
-test_a = rolling_window(test,(11,11))
-test_b = moving_window_array(test,window_size=11,overlap=5)
-test_b.shape
-
-
+ssim(u*2,u_model_cut, axis= (0,1))
 
 
 

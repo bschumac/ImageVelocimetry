@@ -130,7 +130,7 @@ def write_png_files_from_Tb(datapath,Tb_filename,out_fld_name,my_dpi=100,verbose
 
 
 
-def ssim(X,Y):
+def ssim(X,Y, axis = (1,2)):
         dmin, dmax = dtype_range[X.dtype.type]
         X.astype(np.float64)
         Y.astype(np.float64)
@@ -140,13 +140,13 @@ def ssim(X,Y):
         #L2 = np.max(Y,axis=(1,2))-np.min(Y,axis=(1,2))
         C1 = (L1*K1)**2
         C2 = (L1*K2)**2
-        mx = np.mean(X,axis=(1,2))
-        my = np.mean(Y,axis=(1,2))
-        mxy = np.mean(X*Y,axis=(1,2))
-        mxx = np.mean(X*X,axis=(1,2))
-        myy = np.mean(Y*Y,axis=(1,2))
-        vx = np.var(X,axis=(1,2))
-        vy = np.var(Y,axis=(1,2))
+        mx = np.mean(X,axis=axis)
+        my = np.mean(Y,axis=axis)
+        mxy = np.mean(X*Y,axis=axis)
+        mxx = np.mean(X*X,axis=axis)
+        myy = np.mean(Y*Y,axis=axis)
+        vx = np.var(X,axis=axis)
+        vy = np.var(Y,axis=axis)
       
       
        
@@ -214,9 +214,9 @@ def calc_aiv(frame_a, frame_b, window_size_x, window_size_y, overlap, max_displa
     
 def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method, search_area_size_x, search_area_size_y=0,  window_size_y=0):
     
-    search_area_size_x = search_area_size 
-    #window_size = window_size_x
-    print((window_size/2)/(window_size-overlap))
+    #search_area_size_x = search_area_size 
+    window_size = window_size_x
+   # print(window_size-((search_area_size_x-window_size)/2))
     if not (window_size-((search_area_size_x-window_size)/2))<= overlap:
         raise ValueError('Overlap or SearchArea has to be bigger: ws-(sa-ws)/2)<=ol')
         
@@ -230,10 +230,10 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
     
 
     for k in range(n_rows):
-        k = 0# range(range(search_area_size/2, frame_a.shape[0] - search_area_size/2, window_size - overlap ):
+        #k = 0# range(range(search_area_size/2, frame_a.shape[0] - search_area_size/2, window_size - overlap ):
         for m in range(n_cols):
-            k = 0# r
-            m = 0
+            #k = 0# r
+            #m = 0
             # range(search_area_size/2, frame_a.shape[1] - search_area_size/2 , window_size - overlap ):
             # Select first the largest window, work like usual from the top left corner
             # the left edge goes as: 
@@ -273,13 +273,13 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
 #                if test[40]==0:
 #                    print(i)
 #            
-            plt.imshow(rolling_wind_arr[1], vmin=2.5, vmax=4)
-            plt.colorbar()
+            #plt.imshow(rolling_wind_arr[1], vmin=2.5, vmax=4)
+            #plt.colorbar()
 #            plt.imshow(window_a_test[4:12,4:12], vmin=2, vmax=4)
 #            
-            plt.imshow(window_b, vmin=2.5, vmax=4)
-            plt.imshow(rolling_wind_arr_test[], vmin=2, vmax=4)
-            plt.colorbar()
+            #plt.imshow(window_b, vmin=2.5, vmax=4)
+            #plt.imshow(rolling_wind_arr_test[], vmin=2, vmax=4)
+            #plt.colorbar()
             #plt.imshow(window_a_test, vmin=2.5, vmax=4)
             #plt.colorbar()
             
@@ -293,14 +293,17 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
                 shap = int(np.sqrt( rep_window_a.shape[0]))
                 dif_sum_reshaped = np.reshape(dif_sum, (shap,shap))
                 dif_sum_reshaped = (dif_sum_reshaped*-1)+np.max(dif_sum_reshaped)
-                plt.imshow(dif_sum_reshaped)
+                #plt.imshow(dif_sum_reshaped)
                 
                 
                 
                 row, col = find_subpixel_peak_position(dif_sum_reshaped)
                 #print(acc_iter_lst[acc_dif_lst.index(min(acc_dif_lst))])
-                row =  row -(((search_area_size_x - window_size)//2))
-                col =  col -(((search_area_size_x - window_size)//2))            
+                #row =  row -(((search_area_size_x - window_size)//2))
+                #col =  col -(((search_area_size_x - window_size)//2))            
+                row =  row -((shap-1)/2)
+                col =  col - ((shap-1)/2)
+                
                 #print("Row")
                 #print(row)
                 #print("Col")
@@ -317,9 +320,11 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
                 #plt.imshow(dif_sum_reshaped)
                 
                 row, col = find_subpixel_peak_position(rmse_reshaped)
-
-                row =  row -(((search_area_size_x - window_size)//2))
-                col =  col -(((search_area_size_x - window_size)//2))             
+                row =  row -((shap-1)/2)
+                col =  col - ((shap-1)/2)
+                #row =  row -(((search_area_size_x - window_size)//2))
+                #col =  col -(((search_area_size_x - window_size)//2))             
+                
                 #row = lookup_direc_lst[dif_sum_min_idx][0]
                 #col = lookup_direc_lst[dif_sum_min_idx][1]
                 u[k,m],v[k,m] = col, row
@@ -333,9 +338,11 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
                 #row = lookup_direc_lst[dif_sum_min_idx][0]
                 #col = lookup_direc_lst[dif_sum_min_idx][1]
                 row, col = find_subpixel_peak_position(dif_sum_reshaped)
+                row =  row -((shap-1)/2)
+                col =  col - ((shap-1)/2)
                 #print(acc_iter_lst[acc_dif_lst.index(min(acc_dif_lst))])
-                row =  row -(((search_area_size_x - window_size)//2)) 
-                col =  col -(((search_area_size_x - window_size)//2))  
+                #row =  row -(((search_area_size_x - window_size)//2)) 
+                #col =  col -(((search_area_size_x - window_size)//2))  
                 u[k,m],v[k,m] = col, row
     
     return u, v        
@@ -520,8 +527,8 @@ def streamplot(U, V, topo = None, vmin = -2, vmax = 2):
     speed = np.sqrt(U*U + V*V)
     
     lw = 2*speed / speed.max()
-    #Q = plt.streamplot(X, Y, U, V, density=1, color='k', linewidth=lw)
-    #E = plt.quiver(X1, Y1, np.mean(U)*20, np.mean(V)*20*-1, color = "red",width=0.01, headwidth=3, scale=1000)
+    Q = plt.streamplot(X, Y, U, V, density=1, color='k', linewidth=lw)
+    E = plt.quiver(X1, Y1, np.mean(U)*20, np.mean(V)*20*-1, color = "red",width=0.01, headwidth=3, scale=1000)
     return(fig) 
         
 
