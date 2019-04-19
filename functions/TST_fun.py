@@ -413,7 +413,7 @@ def tst_kmeans(dataset,n_clusters = 8, outpath="", my_dpi = 100):
             fig = plt.figure(figsize=(382/my_dpi, 288/my_dpi), dpi=my_dpi)
             ax1 = plt.subplot(111)
             im=ax1.imshow(lab,interpolation=None, cmap = cm.gray)
-            plt.savefig(datapath+"test_seg/"+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+            plt.savefig(outpath+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
             plt.close()
     return(kmean_arr)
         

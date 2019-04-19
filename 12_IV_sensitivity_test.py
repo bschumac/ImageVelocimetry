@@ -55,10 +55,10 @@ for case in case_lst:
 
                 
                 act_result_lst.append([case,window_size,overlap,search_area_size])
-                #case = "vertex_shedding"
+                #case = "no_wind"
                 #window_size = 24
-                #overlap = 19
-                #search_area_size = 72
+                #overlap = 23
+                #search_area_size = 30
     
 
 
@@ -113,7 +113,7 @@ for case in case_lst:
                     plt.imshow(frame_a)
                     plt.quiver(x,y,u,v)
                     #plt.show()
-                    plt.savefig(outpath+"cross_correlation/vectors_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.savefig(outpath+"cross_correlation/IMAGEVELOCIMETRY_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
                     
                     
@@ -141,6 +141,15 @@ for case in case_lst:
                     
                     u[numpy.isnan(u)]=0
                     v[numpy.isnan(v)]=0
+                    
+                    plt.figure()
+                    plt.imshow(frame_a)
+                    plt.colorbar()
+                    plt.quiver(x,y,u_model_cut,v_model_cut)
+                    #plt.show()
+                    plt.savefig(outpath+"cross_correlation/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.close()
+                    
                     
                     dif_u = u*multiplyer_lst[ssimidxu]-u_model_cut
                     dif_flatten = dif_u.flatten()[~numpy.isnan(dif_u.flatten())]
@@ -191,15 +200,16 @@ for case in case_lst:
                     
                     #u1=np.flip(u1,0)
                     #v1=np.flip(v1,0)
-                    v1 = v1 *-1
+                    #v1 = v1 *-1
                     u1[numpy.isnan(u1)]=0
                     v1[numpy.isnan(v1)]=0
                     
                     plt.figure()
                     plt.imshow(frame_a)
+                    plt.colorbar()
                     plt.quiver(x1,y1,u1,v1)
                     #plt.show()
-                    plt.savefig(outpath+"greyscale/vectors_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.savefig(outpath+"greyscale/IMAGEVELOCIMETRY_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
                     
                     
@@ -225,6 +235,13 @@ for case in case_lst:
                     rmseidxu = rmsevalcclstu.index(np.min(rmsevalccu))
                     rmseidxv = rmsevalcclstv.index(np.min(rmsevalccv))
                     
+                    plt.figure()
+                    plt.imshow(frame_a)
+                    plt.colorbar()
+                    plt.quiver(x1,y1,u_model_cut,v_model_cut)
+                    #plt.show()
+                    plt.savefig(outpath+"greyscale/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.close()                    
                     
                     
                     dif_u = u1*multiplyer_lst[ssimidxu]-u_model_cut
@@ -242,6 +259,7 @@ for case in case_lst:
                     #plt.show()
                     plt.savefig(outpath+"greyscale/hist_u_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
+                    
                     
                     
                     
@@ -275,7 +293,7 @@ for case in case_lst:
                     x2, y2 = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
                     
                     
-                    v2 = v2 *-1
+                    #v2 = v2 *-1
                     
                     #u1=np.flip(u1,0)
                     #v1=np.flip(v1,0)
@@ -284,9 +302,10 @@ for case in case_lst:
                     
                     plt.figure()
                     plt.imshow(frame_a)
+                    plt.colorbar()
                     plt.quiver(x2,y2,u2,v2)
                     #plt.show()
-                    plt.savefig(outpath+"rmse/vectors_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.savefig(outpath+"rmse/IMAGEVELOCIMETRY_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
                     
                     
@@ -330,7 +349,13 @@ for case in case_lst:
                     plt.savefig(outpath+"rmse/hist_u_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
                     
-                    
+                    plt.figure()
+                    plt.imshow(frame_a)
+                    plt.colorbar()
+                    plt.quiver(x2,y2,u_model_cut,v_model_cut)
+                    #plt.show()
+                    plt.savefig(outpath+"greyscale/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.close()
                     
                     
                     dif_u = v2*multiplyer_lst[ssimidxv]-u_model_cut
@@ -364,14 +389,16 @@ for case in case_lst:
                     
                     #u1=np.flip(u1,0)
                     #v1=np.flip(v1,0)
-                    v3 = v3 *-1
+                    #v3 = v3 *-1
                     
                     plt.figure()
                     plt.imshow(frame_a)
+                    plt.colorbar()
                     plt.quiver(x3,y3,u3,v3)
                     #plt.show()
-                    plt.savefig(outpath+"ssim/vectors_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.savefig(outpath+"ssim/IMAGEVELOCIMETRY_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
+                    
                     u3[numpy.isnan(u3)]=0
                     v3[numpy.isnan(v3)]=0
                     
@@ -398,6 +425,14 @@ for case in case_lst:
                     rmseidxv = rmsevalcclstv.index(np.min(rmsevalccv))
                     
                     
+                    
+                    plt.figure()
+                    plt.imshow(frame_a)
+                    plt.colorbar()
+                    plt.quiver(x3,y3,u_model_cut,v_model_cut)
+                    #plt.show()
+                    plt.savefig(outpath+"ssim/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.close()
                     
                     dif_u = u3*multiplyer_lst[ssimidxu]-u_model_cut
                     dif_flatten = dif_u.flatten()[~numpy.isnan(dif_u.flatten())]
