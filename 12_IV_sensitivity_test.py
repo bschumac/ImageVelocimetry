@@ -37,7 +37,13 @@ result_lst_names = ["case", "window_size", "overlap", "search_area_size", "ccuss
                 
 result_lst = []
 # case, ws, ol, sa, 
+
+#case = case_lst[2]
+
+
+
 for case in case_lst:
+    case = "vertex_shedding"
     if case == "strong_wind":
         file = h5py.File(datapath+'cbl_surf.nc','r')
     elif case == "no_wind": 
@@ -55,10 +61,10 @@ for case in case_lst:
 
                 
                 act_result_lst.append([case,window_size,overlap,search_area_size])
-                #case = "no_wind"
-                #window_size = 24
-                #overlap = 23
-                #search_area_size = 30
+                
+                window_size = 8
+                overlap = 7
+                search_area_size = 16
     
 
 
@@ -108,13 +114,16 @@ for case in case_lst:
                     x, y = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
     
                     ## vectorplot
-                    
+                    u = np.flipud(u)
+                    v = np.flipud(v)
                     plt.figure()
                     plt.imshow(frame_a)
                     plt.quiver(x,y,u,v)
                     #plt.show()
                     plt.savefig(outpath+"cross_correlation/IMAGEVELOCIMETRY_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
+
+                    
                     
                     
                     # histogram with measures
@@ -141,7 +150,8 @@ for case in case_lst:
                     
                     u[numpy.isnan(u)]=0
                     v[numpy.isnan(v)]=0
-                    
+                    u_model_cut = np.flipud(u_model_cut)
+                    v_model_cut = np.flipud(v_model_cut)
                     plt.figure()
                     plt.imshow(frame_a)
                     plt.colorbar()
@@ -198,19 +208,41 @@ for case in case_lst:
                     
                     x1, y1 = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
                     
-                    #u1=np.flip(u1,0)
-                    #v1=np.flip(v1,0)
+                    lw = .6
+                    u1=np.flipud(u1)
+                    v1=np.flipud(v1)
                     #v1 = v1 *-1
+                    #u1 = u1*-1
                     u1[numpy.isnan(u1)]=0
                     v1[numpy.isnan(v1)]=0
                     
+                    plt.figure(1)
+                    #plt.subplot(211)
+                    #plt.gca().set_title("IV")
+                    #plt.imshow(frame_a)
+                    #plt.colorbar()
+                    #plt.quiver(x1,y1,u1,v1,color="white")
+                    streamplot(U=u1, V=v1*-1, X=x1, Y=y1, topo = frame_a,vmin=0,vmax=8)
+                    #plt.show()
+                    plt.savefig(outpath+"greyscale/IMAGEVELOCIMETRY_stream2_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=600,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.close()
+                    
                     plt.figure()
+                    #plt.subplot(212)
+                    #plt.gca().set_title("MODEL")
                     plt.imshow(frame_a)
                     plt.colorbar()
-                    plt.quiver(x1,y1,u1,v1)
+                    
+                    plt.quiver(x1,y1,np.flipud(u_model_cut),np.flipud(v_model_cut), color="black")
+                    #plt.subplots_adjust(top=1.3, bottom=0.08, left=0.10, right=0.95, hspace=0.25,
+                    #wspace=0.35)
                     #plt.show()
-                    plt.savefig(outpath+"greyscale/IMAGEVELOCIMETRY_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-                    plt.close()
+                    plt.imshow(u_model_cut)
+                    plt.colorbar()
+                    plt.savefig(outpath+"greyscale/MODEL_case_U_vel"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=600,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.close()    
+                    
+                    
                     
                     
                     # histogram with measures
@@ -235,13 +267,8 @@ for case in case_lst:
                     rmseidxu = rmsevalcclstu.index(np.min(rmsevalccu))
                     rmseidxv = rmsevalcclstv.index(np.min(rmsevalccv))
                     
-                    plt.figure()
-                    plt.imshow(frame_a)
-                    plt.colorbar()
-                    plt.quiver(x1,y1,u_model_cut,v_model_cut)
-                    #plt.show()
-                    plt.savefig(outpath+"greyscale/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-                    plt.close()                    
+                    
+                                   
                     
                     
                     dif_u = u1*multiplyer_lst[ssimidxu]-u_model_cut
@@ -430,7 +457,7 @@ for case in case_lst:
                     plt.imshow(frame_a)
                     plt.colorbar()
                     plt.quiver(x3,y3,u_model_cut,v_model_cut)
-                    #plt.show()
+                    plt.show()
                     plt.savefig(outpath+"ssim/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
                     

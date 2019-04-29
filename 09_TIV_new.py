@@ -21,7 +21,7 @@ import datetime
 from math import sqrt
 import openpiv.filters
 import os
-
+import copy
 
 experiment = "T1"
 
@@ -32,11 +32,8 @@ if experiment == "T0":
     datapath = "/home/benjamin/Met_ParametersTST/T0/data/"
     file = h5py.File(datapath+'Tb_stab_rect_pertub_py.nc','r')
 elif experiment == "T1":
-    datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/"
+    datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub_py.nc','r')
-
-
-
 
 
 
@@ -50,60 +47,100 @@ xas = []
 yas = []
 
 
-method = "ssim"
-my_dpi = 100
+method = "greyscale"
+my_dpi = 300
 
-window_size=24
-overlap = 23
-search_area_size = 36
+window_size=16
+overlap = 15
+search_area_size = 32
+
+
 outpath = datapath+"tiv/method_"+method+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+"/"
 
 if not os.path.exists(outpath):
     os.makedirs(outpath)
+        
 
 
 
 
-
-
-
+uas_lst = []
+vas_lst = []
+vas = None
+uas = None
+lasttime = 0
+pertub_minmean_lst =[]
 
 if method == "greyscale" or method =="rmse" or method =="ssim":
 
-    for i in range(0,len(pertub)-1,3):
+    for i in range(139,len(pertub)-6,6):
         print(i)
         frame_a = pertub[i]
-        frame_b = pertub[i+3]
+        frame_b = pertub[i+6]
     
     
         u1, v1= window_correlation_tiv(frame_a, frame_b, window_size_x=window_size, window_size_y=0, overlap=overlap, 
-                               search_area_size_x=search_area_size, search_area_size_y=0, corr_method="greyscale")
+                               search_area_size_x=search_area_size, search_area_size_y=0, corr_method=method)
         
         
         x1, y1 = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
-        uas.append(u1)
-        vas.append(v1)
-        xas.append(x1)
-        yas.append(y1)
         
-        u1=np.flip(u1,0)
-        v1=np.flip(v1,0)
+        
+        #v1 = v1*-1
+        #field_shape= get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap)
+        #get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
+      
+        #frame_a.shape[0]/get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )[0]
+        #frame_a.shape[1]/get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )[1]
+        
+        #v1 = np.flipud(v1)
+        #u1 = np.flipud(u1)
+        
+        
+
         
         plt.figure()
-        plt.imshow(frame_a, vmin = -3, vmax=3)
-        plt.colorbar()
-        plt.quiver(x1,y1,u1,v1*-1)
-        #plt.show()
         
+        #plt.imshow(frame_a, vmin = -2, vmax=2)
+        #plt.colorbar()
+        #plt.quiver(x1,y1,u1,v1*-1)
+        #
+        streamplot(u1,v1*-1,X= x1, Y=y1, topo=frame_b,  vmin = -2, vmax = 2 )
+        #plt.show()
         plt.savefig(outpath+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
         plt.close()
+        
+        v1= np.reshape(v1,((1,v1.shape[0],v1.shape[1])))
+        u1= np.reshape(u1,((1,u1.shape[0],u1.shape[1])))
+        if i == 139 or (i-139)//337 > lasttime:
+            if i != 139:
+                uas_lst.append(uas)
+                vas_lst.append(vas)
+            uas =  copy.copy(u1)
+            vas = copy.copy(v1)
+            pertub_minmean = np.mean(pertub[i:i+337,:,:],axis=0)
+            pertub_minmean_lst.append(pertub_minmean)
+            lasttime = (i-139)//337
+            
+            print(lasttime)
+        else:
+            uas = np.append(uas,u1,0)
+            vas = np.append(vas,v1,0)
+        if i == 139:
+            uas2 =  copy.copy(u1)
+            vas2 = copy.copy(v1)
+
+        else:
+            uas2 = np.append(uas,u1,0)
+            vas2 = np.append(vas,v1,0)
+            
     
     
 else:    
-    for i in range(0,len(pertub)-1,3):
+    for i in range(139,len(pertub)-6,6):
         print(i)
         frame_a = pertub[i]
-        frame_b = pertub[i+3]
+        frame_b = pertub[i+6]
         
         u, v = cross_correlation_aiv(frame_a, frame_b, window_size=window_size, overlap=overlap,
                                   dt=1, search_area_size=search_area_size, nfftx=None, 
@@ -111,23 +148,96 @@ else:
         
         
         x, y = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
-    
-    
-        #x=np.flip(x,0)
-        #y=np.flip(y,0)
-        u=np.flip(u,0)
-        v=np.flip(v,0)
+
+        ## vectorplot
+        #u = np.flipud(u)
+        #v = np.flipud(v)
         #plt.imshow(y)
-        u, v = openpiv.filters.replace_outliers( u, v, method='localmean', max_iter=10, kernel_size=2)
+        #v = v*-1
+        #u, v = openpiv.filters.replace_outliers( u, v, method='localmean', max_iter=10, kernel_size=2)
     
         
         plt.figure()
-        plt.imshow(frame_a, vmin = -5, vmax=5)
+        plt.imshow(frame_a, vmin = -2, vmax=2)
+        plt.colorbar()
         plt.quiver(x,y,u,v)
         plt.savefig(outpath+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
         plt.close()
 
 
 
+
+
+
+
+
+
+
+
+
+
+    
+len(uas_lst)
+outpath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/tiv/method_streamplot_minmean_rmse_WS_24_OL_23_SA_48/"
+
+if not os.path.exists(outpath):
+    os.makedirs(outpath)
+        
+
+for i in range (0, len(uas_lst)):
+    print(i)        
+    uas_mean = np.nanmean(uas_lst[i],axis=0)        
+           
+    vas_mean=np.nanmean(vas_lst[i],axis=0)        
+    pertub_mean = np.nanmean(pertub,axis=0)       
+    
+    X= x1
+    Y=y1
+    U = uas_mean
+    V = vas_mean*-1
+    topo = pertub_minmean_lst[i]
+    if topo is None:
+        topo = copy.copy(U)
+    fig = plt.figure()
+    I = plt.imshow(topo, cmap = "rainbow", vmin = -0.2, vmax=0.2)
+    fig.colorbar(I)
+
+    speed = np.sqrt(U*U + V*V)   
+    lw = 3*(speed / speed.max())
+    Q = plt.streamplot(X, Y, U, V, color='k', linewidth=lw)
+    #plt.savefig(outpath+str("10_min_mean")+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+    #plt.close()  
+    #plt.show()
+    
+    plt.savefig(outpath+str("min_mean_")+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+    plt.close()        
+        
+        
+        
+        
+#def streamplot(U, V, X, Y, topo = None, vmin = -2, vmax = 2):
+    uas_mean = np.nanmean(uas2,axis=0)        
+           
+    vas_mean=np.nanmean(vas2,axis=0)        
+    pertub_mean = np.nanmean(pertub,axis=0)     
+
+    X= x1
+    Y=y1
+    U = uas_mean
+    V = vas_mean*-1
+    topo = pertub_mean
+    if topo is None:
+        topo = copy.copy(U)
+    fig = plt.figure()
+    I = plt.imshow(topo, cmap = "rainbow", vmin = -0.02, vmax=0.02)
+    fig.colorbar(I)
+
+    speed = np.sqrt(U*U + V*V)   
+    lw = 2*speed / speed.max()
+    Q = plt.streamplot(X, Y, U, V)
+    plt.savefig(outpath+str("10_min_mean")+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+    plt.close()  
+        
+        
 
 

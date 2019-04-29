@@ -15,10 +15,12 @@ import sklearn.cluster
 import copy
 
 
-def calcwinddirection(v,u): 
-    erg_dir_rad = np.arctan2(v, u)
+def calcwinddirection(u,v): 
+    
+    erg_dir_rad = np.arctan2(u, v)
     erg_dir_deg = np.degrees(erg_dir_rad)
     erg_dir_deg_pos = np.where(erg_dir_deg < 0.0, erg_dir_deg+360, erg_dir_deg)
+
     return(np.round(erg_dir_deg_pos,2))
 
 
@@ -511,7 +513,7 @@ def calc_TIV(n, pertub, iterx, itery, interval = 1, max_displacement=25, inter_w
     return(np.stack((u, v)))
 
 
-def streamplot(U, V, topo = None, vmin = -2, vmax = 2):
+def streamplot_old(U, V, topo = None, vmin = -2, vmax = 2):
     import copy
     fig = plt.figure()
     if topo is None:
@@ -533,10 +535,21 @@ def streamplot(U, V, topo = None, vmin = -2, vmax = 2):
         
 
 
+def streamplot(U, V, X, Y, topo = None, vmin = -2, vmax = 2):
+    
+    
+    if topo is None:
+        topo = copy.copy(U)
+    fig = plt.figure()
+    I = plt.imshow(topo, cmap = "rainbow",vmin=vmin, vmax=vmax)
+    fig.colorbar(I)
 
+    speed = np.sqrt(U*U + V*V)   
+    lw = 2*speed / speed.max()
+    Q = plt.streamplot(X, Y, U, V, density=1, color='k', linewidth=lw)
+    #E = plt.quiver(X1, Y1, np.mean(U)*20, np.mean(V)*20*-1, color = "red",width=0.01, headwidth=3, scale=1000)
+    return(fig) 
 
-u_subset = 1
-pertub = u_subset
 
 
 
