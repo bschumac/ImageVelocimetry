@@ -33,7 +33,7 @@ if experiment == "T0":
     file = h5py.File(datapath+'Tb_stab_rect_pertub_py.nc','r')
 elif experiment == "T1":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
-    file = h5py.File(datapath+'Tb_stab_pertub_py.nc','r')
+    file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
 
 
 
@@ -50,9 +50,9 @@ yas = []
 method = "greyscale"
 my_dpi = 300
 
-window_size=16
-overlap = 15
-search_area_size = 32
+window_size=64
+overlap = 63
+search_area_size = 70
 
 
 outpath = datapath+"tiv/method_"+method+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+"/"
@@ -71,12 +71,27 @@ uas = None
 lasttime = 0
 pertub_minmean_lst =[]
 
+
+pertub[0] = np.random.rand(pertub[0].shape[0],pertub[0].shape[1])
+pertub[1] = np.random.rand(pertub[0].shape[0],pertub[0].shape[1])
+
+
+
+pertub[0,145:165,145:165] = 25
+pertub[1,145+25:165+25,145:165] = 25
+
+plt.imshow(pertub[0])
+
+plt.imshow(pertub[1])
+
+
 if method == "greyscale" or method =="rmse" or method =="ssim":
 
-    for i in range(139,len(pertub)-6,6):
+    for i in range(47,len(pertub)-1,1):
+        i = 0
         print(i)
         frame_a = pertub[i]
-        frame_b = pertub[i+6]
+        frame_b = pertub[i+1]
     
     
         u1, v1= window_correlation_tiv(frame_a, frame_b, window_size_x=window_size, window_size_y=0, overlap=overlap, 
@@ -86,26 +101,22 @@ if method == "greyscale" or method =="rmse" or method =="ssim":
         x1, y1 = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
         
         
-        #v1 = v1*-1
-        #field_shape= get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap)
-        #get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
-      
-        #frame_a.shape[0]/get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )[0]
-        #frame_a.shape[1]/get_field_shape(image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )[1]
-        
-        #v1 = np.flipud(v1)
-        #u1 = np.flipud(u1)
         
         
 
+        u1=np.flipud(u1)
+        v1=np.flipud(v1)
         
-        plt.figure()
         
-        #plt.imshow(frame_a, vmin = -2, vmax=2)
-        #plt.colorbar()
-        #plt.quiver(x1,y1,u1,v1*-1)
-        #
-        streamplot(u1,v1*-1,X= x1, Y=y1, topo=frame_b,  vmin = -2, vmax = 2 )
+        plt.figure(1)
+        #plt.subplot(211)
+        #plt.gca().set_title("IV")
+        plt.imshow(frame_a,vmin=0,vmax=7)
+        plt.colorbar()
+        plt.quiver(x1,y1,u1,v1,color="black")        
+
+        #streamplot(U=u1, V=v1*-1, X=x1, Y=y1, topo = frame_a,vmin=-1,vmax=1)
+       
         #plt.show()
         plt.savefig(outpath+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
         plt.close()
@@ -157,12 +168,12 @@ else:
         #u, v = openpiv.filters.replace_outliers( u, v, method='localmean', max_iter=10, kernel_size=2)
     
         
-        plt.figure()
-        plt.imshow(frame_a, vmin = -2, vmax=2)
-        plt.colorbar()
-        plt.quiver(x,y,u,v)
-        plt.savefig(outpath+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-        plt.close()
+        #plt.figure()
+       # plt.imshow(frame_a, vmin = -2, vmax=2)
+        #plt.colorbar()
+       # plt.quiver(x,y,u,v)
+        #plt.savefig(outpath+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+        #plt.close()
 
 
 
@@ -172,9 +183,9 @@ else:
 
 
 
+x1 = x1 - 2
 
-
-
+pertub_mean.shape
 
     
 len(uas_lst)
@@ -192,7 +203,7 @@ for i in range (0, len(uas_lst)):
     pertub_mean = np.nanmean(pertub,axis=0)       
     
     X= x1
-    Y=y1
+    Y= y1
     U = uas_mean
     V = vas_mean*-1
     topo = pertub_minmean_lst[i]
@@ -202,8 +213,13 @@ for i in range (0, len(uas_lst)):
     I = plt.imshow(topo, cmap = "rainbow", vmin = -0.2, vmax=0.2)
     fig.colorbar(I)
 
-    speed = np.sqrt(U*U + V*V)   
+    speed = np.sqrt(U*U + V*V) 
+    
+    
     lw = 3*(speed / speed.max())
+    
+    
+    lw[(lw< np.mean(lw)+3*np.std(lw)) & (lw> np.mean(lw)-2*np.std(lw)) ] =  lw[(lw< np.mean(lw)+3*np.std(lw)) & (lw> np.mean(lw)-2*np.std(lw)) ]*5
     Q = plt.streamplot(X, Y, U, V, color='k', linewidth=lw)
     #plt.savefig(outpath+str("10_min_mean")+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
     #plt.close()  

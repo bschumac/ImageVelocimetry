@@ -180,7 +180,7 @@ def calc_AIV_parallel(n, array, method = "greyscale"):
 
 
 
-def calc_aiv(frame_a, frame_b, window_size_x, window_size_y, overlap, max_displacement=None , corr_method="fft", subpixel_method='gaussian'):
+def calc_aiv(frame_a, frame_b, window_size_x, window_size_y, overlap, max_displacement=None , corr_method="fft", subpixel_method='gaussian'): # method = PIV/AIV
     # fehlt: kmeans segmentation to determine window size
     # 
     
@@ -214,8 +214,8 @@ def calc_aiv(frame_a, frame_b, window_size_x, window_size_y, overlap, max_displa
     
     
     
-def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method, search_area_size_x, search_area_size_y=0,  window_size_y=0):
-    
+def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, overlap_search_area, corr_method, search_area_size_x, search_area_size_y=0,  window_size_y=0):
+    #corr_method = method
     #search_area_size_x = search_area_size 
     window_size = window_size_x
    # print(window_size-((search_area_size_x-window_size)/2))
@@ -224,7 +224,7 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
         
      
     
-    n_rows, n_cols = get_field_shape(frame_a.shape, search_area_size_x, overlap )    
+    n_rows, n_cols = get_field_shape(frame_a.shape, search_area_size_x, overlap )   
     u = np.zeros((n_rows, n_cols))
     v = np.zeros((n_rows, n_cols))
     
@@ -232,26 +232,27 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
     
 
     for k in range(n_rows):
-        #k = 0# range(range(search_area_size/2, frame_a.shape[0] - search_area_size/2, window_size - overlap ):
+        #k = 0
         for m in range(n_cols):
-            #k = 0# r
-            #m = 0
+            #print(m)
+            #k = 1# r
+            #m = 1
             # range(search_area_size/2, frame_a.shape[1] - search_area_size/2 , window_size - overlap ):
             # Select first the largest window, work like usual from the top left corner
             # the left edge goes as: 
             # e.g. 0, (search_area_size - overlap), 2*(search_area_size - overlap),....
-            il = k*(search_area_size_x - overlap)
+            il = k*(search_area_size_x - overlap_search_area)#k*(search_area_size_x - (search_area_size_x-1)) #
             ir = il + search_area_size_x
             
             # same for top-bottom
-            jt = m*(search_area_size_x - overlap)
+            jt = m*(search_area_size_x - overlap_search_area)#m*(search_area_size_x - (search_area_size_x-1)) #
             jb = jt + search_area_size_x
             
             # pick up the window in the second image
             window_b = frame_b[il:ir, jt:jb]            
             window_a_test = frame_a[il:ir, jt:jb]    
             
-            rolling_wind_arr = moving_window_array(window_b, window_size, overlap)
+            rolling_wind_arr = moving_window_array(window_b, window_size, overlap_window)
             
             
             # now shift the left corner of the smaller window inside the larger one
@@ -264,27 +265,13 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
         
             window_a = frame_a[il:ir, jt:jb]
             
-            rolling_wind_arr_test = moving_window_array(window_a_test, window_size, overlap)
+            #rolling_wind_arr_test = moving_window_array(window_a_test, window_size, overlap)
 
-            window_a_test.itemsize
+            
             rep_window_a = np.repeat(window_a[ :, :,np.newaxis], rolling_wind_arr.shape[0], axis=2)
             rep_window_a = np.rollaxis(rep_window_a,2)
            
-#            test = rep_window_a - rolling_wind_arr_test
-#            for i in range(0,81):
-#                if test[40]==0:
-#                    print(i)
-#            
-            #plt.imshow(rolling_wind_arr[1], vmin=2.5, vmax=4)
-            #plt.colorbar()
-#            plt.imshow(window_a_test[4:12,4:12], vmin=2, vmax=4)
-#            
-            #plt.imshow(window_b, vmin=2.5, vmax=4)
-            #plt.imshow(rolling_wind_arr_test[], vmin=2, vmax=4)
-            #plt.colorbar()
-            #plt.imshow(window_a_test, vmin=2.5, vmax=4)
-            #plt.colorbar()
-            
+
             
             
             if corr_method == "greyscale": 
@@ -295,8 +282,7 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
                 shap = int(np.sqrt( rep_window_a.shape[0]))
                 dif_sum_reshaped = np.reshape(dif_sum, (shap,shap))
                 dif_sum_reshaped = (dif_sum_reshaped*-1)+np.max(dif_sum_reshaped)
-                #plt.imshow(dif_sum_reshaped)
-                
+                        
                 
                 
                 row, col = find_subpixel_peak_position(dif_sum_reshaped)
@@ -315,20 +301,16 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
             
             if corr_method == "rmse":         
                 rmse = np.sqrt(np.mean((rolling_wind_arr-rep_window_a)**2,(1,2)))
-                #print(acc_iter_lst[acc_dif_lst.index(min(acc_dif_lst))])
+      
                 shap = int(np.sqrt( rep_window_a.shape[0]))
                 rmse_reshaped = np.reshape(rmse, (shap,shap))
                 rmse_reshaped = (rmse_reshaped*-1)+np.max(rmse_reshaped)
-                #plt.imshow(dif_sum_reshaped)
+               
                 
                 row, col = find_subpixel_peak_position(rmse_reshaped)
                 row =  row -((shap-1)/2)
                 col =  col - ((shap-1)/2)
-                #row =  row -(((search_area_size_x - window_size)//2))
-                #col =  col -(((search_area_size_x - window_size)//2))             
-                
-                #row = lookup_direc_lst[dif_sum_min_idx][0]
-                #col = lookup_direc_lst[dif_sum_min_idx][1]
+
                 u[k,m],v[k,m] = col, row
                 
 
@@ -337,14 +319,11 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap, corr_method
                 #dif_sum_min_idx = np.argmax(ssim_lst)
                 shap = int(np.sqrt( rep_window_a.shape[0]))
                 dif_sum_reshaped = np.reshape(ssim_lst, (shap,shap))
-                #row = lookup_direc_lst[dif_sum_min_idx][0]
-                #col = lookup_direc_lst[dif_sum_min_idx][1]
+                
                 row, col = find_subpixel_peak_position(dif_sum_reshaped)
                 row =  row -((shap-1)/2)
                 col =  col - ((shap-1)/2)
-                #print(acc_iter_lst[acc_dif_lst.index(min(acc_dif_lst))])
-                #row =  row -(((search_area_size_x - window_size)//2)) 
-                #col =  col -(((search_area_size_x - window_size)//2))  
+                
                 u[k,m],v[k,m] = col, row
     
     return u, v        
@@ -437,9 +416,15 @@ def tst_kmeans(dataset,n_clusters = 8, outpath="", my_dpi = 100):
 
 
 
-def calc_TIV(n, pertub, iterx, itery, interval = 1, max_displacement=25, inter_window_size_y= 35, inter_window_size_x=35 ,inter_window_size_dif_x=10, inter_window_size_dif_y=10, iter_lst = [], method = "greyscale"):
+def calc_TIV(n, pertub, interval = 1, max_displacement=25, inter_window_size_y= 35, inter_window_size_x=35 , iter_lst = [], method = "greyscale"):
     # runs over all given bands
     #n = 0
+    inter_window_size_dif_x = int((inter_window_size_x-1)/2) 
+           
+    inter_window_size_dif_y = int((inter_window_size_y-1)/2) 
+    
+    
+    
     print("Processing Image")
     print(n)
     print("----------------")

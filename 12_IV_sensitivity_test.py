@@ -43,7 +43,7 @@ result_lst = []
 
 
 for case in case_lst:
-    case = "vertex_shedding"
+    case = "no_wind"
     if case == "strong_wind":
         file = h5py.File(datapath+'cbl_surf.nc','r')
     elif case == "no_wind": 
@@ -61,10 +61,10 @@ for case in case_lst:
 
                 
                 act_result_lst.append([case,window_size,overlap,search_area_size])
-                
-                window_size = 8
-                overlap = 7
-                search_area_size = 16
+          
+                window_size = 16
+                overlap = 15
+                search_area_size = 32
     
 
 
@@ -208,38 +208,37 @@ for case in case_lst:
                     
                     x1, y1 = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
                     
-                    lw = .6
+                    
                     u1=np.flipud(u1)
                     v1=np.flipud(v1)
                     #v1 = v1 *-1
                     #u1 = u1*-1
-                    u1[numpy.isnan(u1)]=0
-                    v1[numpy.isnan(v1)]=0
+                    #u1[numpy.isnan(u1)]=0
+                    #v1[numpy.isnan(v1)]=0
+                    #plt.imshow(u1)
+                    #plt.imshow(v1)
+                    #plt.imshow(v_model_cut)
                     
                     plt.figure(1)
                     #plt.subplot(211)
                     #plt.gca().set_title("IV")
-                    #plt.imshow(frame_a)
-                    #plt.colorbar()
-                    #plt.quiver(x1,y1,u1,v1,color="white")
-                    streamplot(U=u1, V=v1*-1, X=x1, Y=y1, topo = frame_a,vmin=0,vmax=8)
+                    plt.imshow(frame_a,vmin=0,vmax=7)
+                    plt.colorbar()
+                    plt.quiver(x1,y1,u1,v1,color="black")
+                    #streamplot(U=u1, V=v1*-1, X=x1, Y=y1, topo = frame_a,vmin=0,vmax=8)
                     #plt.show()
-                    plt.savefig(outpath+"greyscale/IMAGEVELOCIMETRY_stream2_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=600,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.savefig(outpath+"greyscale/IMAGEVELOCIMETRY_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=1200,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
-                    
+                    lw = .3
                     plt.figure()
-                    #plt.subplot(212)
-                    #plt.gca().set_title("MODEL")
-                    plt.imshow(frame_a)
+
+                    plt.imshow(frame_a,vmin=0,vmax=7)
                     plt.colorbar()
                     
-                    plt.quiver(x1,y1,np.flipud(u_model_cut),np.flipud(v_model_cut), color="black")
-                    #plt.subplots_adjust(top=1.3, bottom=0.08, left=0.10, right=0.95, hspace=0.25,
-                    #wspace=0.35)
-                    #plt.show()
-                    plt.imshow(u_model_cut)
-                    plt.colorbar()
-                    plt.savefig(outpath+"greyscale/MODEL_case_U_vel"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=600,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.quiver(x1,y1,np.flipud(u_model_cut),np.flipud(v_model_cut), color='black', linewidth=lw)
+                    #streamplot(U=np.flipud(u_model_cut), V=np.flipud(v_model_cut)*-1, X=x1, Y=y1, topo = frame_a,vmin=0,vmax=8)
+                    
+                    plt.savefig(outpath+"greyscale/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=1200,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()    
                     
                     

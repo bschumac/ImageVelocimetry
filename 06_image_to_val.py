@@ -31,23 +31,22 @@ end_img = 19500+27000
 #end_img = 68001
 
 
+
 if T1:
     org_datapath = "/home/benjamin/Met_ParametersTST/T1/"
-    img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif/"
-    
+    #img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif/"
+    img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif_viridis/"
     # first try:
     #img_datapath2 = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab/"
     
-    # black edge anti alias
-    #img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_antialiasing/"
-    
     # black edge not anti alias
-    img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_cut/"
+    #img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_cut/"
+    
+    # virdris images:
+    img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_virdris/"
     
     
-    
-    datapath = "/media/benjamin/XChange/T1/data/Optris_data_120119/Tier01/Flight03_O80_1616/"
-    add_prefix_pngfile = "Flight_03_O80_stab"
+    datapath = "/media/benjamin/Seagate Expansion Drive/T1/data/Optris_data_120119/Tier01/Flight03_O80_1616/"
     image_type1 = ".tif"
     image_type2 = ".tif"
     fls = os.listdir(datapath)
@@ -63,28 +62,30 @@ else:
     file = h5py.File(org_datapath+'Tb_1Hz.mat','r')
     tb= file.get("Tb")
     end_img = len(tb)
-    
-n_pics = 13
-
 
 
 MAE_lst = []
 RMSE_lst = []
 #end_img
 
-
+len(fls)
 
 # original data
-org_data = np.zeros((3847,288,382))
+
 counter = 0
-for i in range(18000,68000, 13): 
-    print(i)
+for i in range(18000,68000, 40): 
+    print(counter)
     my_data = np.genfromtxt(datapath+fls[i], delimiter=',', skip_header=1)
-    org_data[counter] = my_data 
+    my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+    if counter == 0:
+        org_data = copy.copy(my_data)
+    else:
+        org_data = np.append(org_data,my_data,0)
+    #org_data[counter] = my_data 
     counter+=1
 
 np.save("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data.npy", org_data)
-org_data = np.load("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data.npy")
+#org_data = np.load("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data.npy")
 
 
 import cv2
@@ -155,6 +156,8 @@ for i in range(0,len(org_data)):
 
 
 np.save("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data_TM.npy", final_pred_stab)
+
+
 final_pred_stab= np.load("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data_TM.npy")
 
 
@@ -187,21 +190,19 @@ for i in range(0,len(final_pred_stab), 1):
 org_data2 = copy.copy(final_pred_stab)
 org_data3 = copy.copy(final_pred_stab)
 
-img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_cut_TM/"
-#img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_cut/"
-img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier03/Flight03_O80_1616_stab_tif_NN_cut_TM_stab_tif_BW/"
+#final_pred_stab = copy.copy(org_data)
+
+
+
 # random forest
 
-a = plt.imshow(final_pred_stab[0])
-a.
-
 #org_data2[org_data2<30] = 70
-plt.imshow(stab_data_rgb-org_data_rgb)
-plt.colorbar()
+
+
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor
 for i in range(0,len(org_data)):
-    i = 0
     print(i)
     image_file=img_datapath1+str(i)+image_type1
     org_data_rgb=plt.imread(image_file)
@@ -209,12 +210,14 @@ for i in range(0,len(org_data)):
     #org_data_rgb=org_data_rgb[50:200,50:250,0:3]
     #plt.imshow(org_data_rgb)
     #plt.imshow(final_pred_stab[0],cmap=cm.jet)
-    image_file=img_datapath2+format(i, '04d')+image_type2
+    
+    
+    image_file=img_datapath2+format(i+1, '04d')+image_type2
     stab_data_rgb=plt.imread(image_file)
-    #stab_data_rgb=stab_data_rgb[:,:,0:3]
+    stab_data_rgb=stab_data_rgb[:,:,0:3]
     #stab_data_rgb = stab_data_rgb*255
     
-    org_data_subset = final_pred_stab[i]#[50:200,50:250]
+    org_data_subset = org_data[i]#[50:200,50:250]
     org_data_labels = org_data_subset.reshape(org_data_subset.shape[0]*org_data_subset.shape[1])
     org_data_rgb_features = org_data_rgb.reshape((org_data_rgb.shape[0]*org_data_rgb.shape[1],org_data_rgb.shape[2]))
     
@@ -260,7 +263,7 @@ for i in range(0,len(org_data)):
         final_pred_stab = np.append(final_pred_stab,pred_stab_reshaped,0)
 
 
-writeNetCDF(org_datapath,"Tb_stab.nc","Tb_pertub",final_pred_stab)
+writeNetCDF(org_datapath,"Tb_stab_virdris.nc","Tb_pertub",final_pred_stab)
 
 
 
@@ -293,19 +296,6 @@ for i in range(0,len(org_data)):
     image_file=img_datapath2+format(i, '04d')+image_type2
     stab_data_bw=plt.imread(image_file)
     stab_data_bw_arr[i] = stab_data_bw
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -422,27 +412,11 @@ plt.imshow(pred_stab_reshaped)
 
 
 
-
-
-
-
-
-
-
-med_filter_stab_Tb = ndimage.median_filter(final_pred_stab, size=3 )
-
-
-Tb_org_pertub = create_tst_pertubations_mm(final_pred_stab, 60)
-
-
-stab_data_bw_arr= np.fliplr(stab_data_bw_arr)
-
-writeNetCDF(org_datapath,"Tb_stab.nc","Tb_pertub",stab_data_bw_arr)
-
+Tb_org_pertub = create_tst_pertubations_mm(final_pred_stab, 40)
 
 Tb_stab_pertub_py = create_tst_pertubations_mm(stab_data_bw_arr, 120)
 
-writeNetCDF(org_datapath,"Tb_stab_pertub_py.nc","Tb_pertub",Tb_stab_pertub_py)
+writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris.nc","Tb_pertub",Tb_org_pertub)
 
 
 
