@@ -94,11 +94,19 @@ for case in case_lst:
                 windspeed = copy.copy(u_subset)
                 
                 for l in range(0,len(u_subset)):
-                    windspeed[l] = calcwindspeed(u_subset[l],u_subset[l])    
+                    windspeed[l] = calcwindspeed(u_subset[l],v_subset[l])    
                 
-                frame_a =  windspeed[0] 
-                frame_b =  windspeed[1]  
-                
+               
+
+
+                frame_a =  windspeed[3542] 
+                frame_b =  windspeed[3543]  
+                plt.figure()
+                plt.imshow(frame_a)
+                plt.colorbar()
+    
+                plt.savefig(outpath+"cross_correlation/abca"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                plt.close()
                 u_model_cut = get_org_data(frame_a=u_model[begin_value_images], search_area_size=search_area_size, overlap=overlap )
                 v_model_cut = get_org_data(frame_a=v_model[begin_value_images], search_area_size=search_area_size, overlap=overlap )
 

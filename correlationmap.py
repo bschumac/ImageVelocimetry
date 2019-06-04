@@ -98,14 +98,16 @@ pertub = file.get("Tb_pertub")
 pertub = np.array(pertub)
 pertub = np.flip(pertub,1)
 
-
+corrmap = np.zeros((pertub.shape[1],pertub.shape[2]))
 
 for i in range(0,pertub.shape[1]):
-    
+    print(i)
     for j in range(0,pertub.shape[2]):
-        np.corrcoef(minmean(irg2_subset.iloc[:,1],10),pertub[21:,i,j])
+        corrmap[i,j] = np.corrcoef(minmean(irg2_subset.iloc[:,1],10),pertub[21:,i,j])[0,1]
 
 
+plt.imshow(corrmap)
+corrmap.max()
 
 
 

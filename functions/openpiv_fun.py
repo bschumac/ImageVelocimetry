@@ -244,15 +244,22 @@ def find_subpixel_peak_position(corr, subpixel_method='gaussian'):
             subpixel_method = 'centroid'
 
         try:
+            
+
+            if subpixel_method == 'gaussian':
+                subp_peak_position = (peak1_i + ((log(cl) - log(cr)) / (2 * log(cl) - 4 * log(c) + 2 * log(cr))),
+                                      peak1_j + ((log(cd) - log(cu)) / (2 * log(cd) - 4 * log(c) + 2 * log(cu))))
+                
+                if subp_peak_position[0] > corr.shape[0] or subp_peak_position[0] < corr.shape[0]*-1:
+                    subpixel_method = 'centroid'
+                if subp_peak_position[1]> corr.shape[1]or subp_peak_position[1] < corr.shape[1]*-1:
+                    subpixel_method = 'centroid' 
+                
+
             if subpixel_method == 'centroid':
                 subp_peak_position = (((peak1_i - 1) * cl + peak1_i * c + (peak1_i + 1) * cr) / (cl + c + cr),
                                       ((peak1_j - 1) * cd + peak1_j * c + (peak1_j + 1) * cu) / (cd + c + cu))
-
-            elif subpixel_method == 'gaussian':
-                subp_peak_position = (peak1_i + ((log(cl) - log(cr)) / (2 * log(cl) - 4 * log(c) + 2 * log(cr))),
-                                      peak1_j + ((log(cd) - log(cu)) / (2 * log(cd) - 4 * log(c) + 2 * log(cu))))
-
-            elif subpixel_method == 'parabolic':
+            if subpixel_method == 'parabolic':
                 subp_peak_position = (peak1_i + (cl - cr) / (2 * cl - 4 * c + 2 * cr),
                                       peak1_j + (cd - cu) / (2 * cd - 4 * c + 2 * cu))
 

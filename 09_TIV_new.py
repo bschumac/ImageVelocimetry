@@ -23,9 +23,8 @@ import openpiv.filters
 import os
 import copy
 
-experiment = "T1"
 
-time_a = datetime.datetime.now()
+experiment = "T1"
 
 
 if experiment == "T0":
@@ -39,50 +38,121 @@ elif experiment == "T1":
 
 pertub = file.get("Tb_pertub")
 pertub = np.array(pertub)
-pertub = np.flip(pertub,1)
 
-uas = []
-vas = []
-xas = []
-yas = []
 
 
 method = "greyscale"
 my_dpi = 300
 
-window_size=64
-overlap = 63
-search_area_size = 70
+ws=16
+ol = 15
+sa = 32
+olsa = 31
 
-
-outpath = datapath+"tiv/method_"+method+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+"/"
+outpath = datapath+"tiv/method_"+method+"_WS_"+str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"/"
 
 if not os.path.exists(outpath):
     os.makedirs(outpath)
         
 
+pertub[0] = 0
+pertub[6] = 0
+pertub[0,145:154,145:160] = 25
+pertub[0,15:25,15:25] = 25
+pertub[0,215:225,215:225] = 25
+pertub[0,25:55,315:330] = 25
+
+
+pertub[6,145+12:154+12,145+12:160+12] = 25
+pertub[6,15+12:25+12,15+12:25+12] = 25
+pertub[6,215+12:225+12,215+12:225+12] = 25
+pertub[6,25+20:55+20,315+20:330+20] = 25
 
 
 
-uas_lst = []
-vas_lst = []
-vas = None
-uas = None
-lasttime = 0
-pertub_minmean_lst =[]
-
-
-pertub[0] = np.random.rand(pertub[0].shape[0],pertub[0].shape[1])
-pertub[1] = np.random.rand(pertub[0].shape[0],pertub[0].shape[1])
+#pertub[0,220:235,220:225] = 25
+#pertub[6,220:235,220+15:225+15] = 25
 
 
 
-pertub[0,145:165,145:165] = 25
-pertub[1,145+25:165+25,145:165] = 25
+plt.imshow(pertub[6])
+pertub[0].shape
+u.shape
+get_field_shape(pertub[i].shape, sa, olsa )
+(pertub[i].shape[1] - sa) // (sa - olsa) + 1
 
-plt.imshow(pertub[0])
+for i in range(0, len(pertub)-6):
+    i = 0
+    u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+6], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, search_area_size_x=sa, corr_method=method)
+    x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
 
-plt.imshow(pertub[1])
+
+    v= np.reshape(v1,((1,v.shape[0],v.shape[1])))
+    u= np.reshape(u1,((1,u.shape[0],u.shape[1])))
+
+    if i == 0:
+            uas =  copy.copy(u)
+            vas =  copy.copy(v)
+
+        else:
+            uas2 = np.append(uas,u,0)
+            vas2 = np.append(vas,v,0)
+
+
+
+
+
+
+plt.imshow(np.flipud(v)-np.flipud(u))
+calcwinddirection(1,1)
+
+
+# checked and trusted!!!
+# v immer *-1 dann passt das
+# fuer quiver plot  dann flipud 
+
+plt.imshow(calcwindspeed(u,v))
+plt.imshow(calcwinddirection(u,v))
+plt.colorbar()
+np.isnan(u)
+np.round(calcwinddirection(u,v*-1)[~numpy.isnan(calcwinddirection(u,v*-1))],0)
+np.round((u)[~numpy.isnan(u)],2)
+
+v.shape
+calcwinddirection(1,0.5)
+plt.figure()
+streamplot(np.flipud(u),np.flipud(v),x,y,topo=pertub[i],enhancement = 1000,vmin = -15, vmax = 15, den=2, lw=2)
+plt.savefig(outpath+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+plt.close()
+
+
+
+u = np.flipud(u)
+v = np.flipud(v)
+
+my_dpi=1200
+plt.imshow(pertub[0], vmin = vmin, vmax=vmax)
+plt.quiver(x,y,np.flipud(np.round(u,0)),np.flipud(np.round(v,0)))
+plt.savefig(outpath+str(i+5)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+plt.close()
+
+def quiverplot(U, V, X, Y, enhancement = 2, topo = None, vmin = -2, vmax = 2, cmap = "gist_rainbow", lw="ws", den = 1)
+    
+    if topo is None:
+        topo = copy.copy(u)
+    fig = plt.figure()
+    plt.imshow(pertub[0], vmin = vmin, vmax=vmax)
+    plt.quiver(x,y,np.flipud(np.round(u,2)),np.flipud(np.round(v,2)))
+    return(fig)
+    
+
+
+
+
+
+
+
+
 
 
 if method == "greyscale" or method =="rmse" or method =="ssim":

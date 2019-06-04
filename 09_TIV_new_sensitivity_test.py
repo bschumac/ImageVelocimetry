@@ -369,10 +369,7 @@ def processInput(method, res_df, minmean_res_df, pos_vec_ret = (90,120),size_aro
                     #u = np.flipud(u)
                     #v = np.flipud(v)
                 
-                    #x=np.flip(x,0)
-                    #y=np.flip(y,0)
-                    #u=np.flip(u,0)
-                    #v=np.flip(v,0)
+                 
                     #plt.imshow(y)
                     #u, v = openpiv.filters.replace_outliers( u, v, method='localmean', max_iter=10, kernel_size=2)
                 

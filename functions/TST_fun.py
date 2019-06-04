@@ -13,7 +13,7 @@ from numpy import log
 from openpiv_fun import *
 import sklearn.cluster
 import copy
-
+import matplotlib.patches as patches
 
 def calcwinddirection(u,v): 
     
@@ -165,7 +165,7 @@ def ssim(X,Y, axis = (1,2)):
 
 # funktion calc_aiv inclusive method und auto window True/False
 
-def calc_AIV_parallel(n, array, method = "greyscale"):
+def calc_AIV_parallel(n, array, method = "greyscale", ):
     # runs over all given bands
     #n = 0
     print("Processing Image")
@@ -173,6 +173,8 @@ def calc_AIV_parallel(n, array, method = "greyscale"):
     print("----------------")
     u = np.zeros((array.shape[1],array.shape[2]))
     v = np.zeros((array.shape[1], array.shape[2]))
+    
+    
     
 
 
@@ -219,12 +221,12 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
     #search_area_size_x = search_area_size 
     window_size = window_size_x
    # print(window_size-((search_area_size_x-window_size)/2))
-    if not (window_size-((search_area_size_x-window_size)/2))<= overlap:
+    if not (window_size-((search_area_size_x-window_size)/2))<= overlap_search_area:
         raise ValueError('Overlap or SearchArea has to be bigger: ws-(sa-ws)/2)<=ol')
         
      
     
-    n_rows, n_cols = get_field_shape(frame_a.shape, search_area_size_x, overlap )   
+    n_rows, n_cols = get_field_shape(frame_a.shape, search_area_size_x, overlap_search_area )   
     u = np.zeros((n_rows, n_cols))
     v = np.zeros((n_rows, n_cols))
     
@@ -232,11 +234,10 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
     
 
     for k in range(n_rows):
-        #k = 0
+
         for m in range(n_cols):
             #print(m)
             #k = 1# r
-            #m = 1
             # range(search_area_size/2, frame_a.shape[1] - search_area_size/2 , window_size - overlap ):
             # Select first the largest window, work like usual from the top left corner
             # the left edge goes as: 
@@ -250,8 +251,9 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
             
             # pick up the window in the second image
             window_b = frame_b[il:ir, jt:jb]            
-            window_a_test = frame_a[il:ir, jt:jb]    
             
+            #window_a_test = frame_a[il:ir, jt:jb]    
+          
             rolling_wind_arr = moving_window_array(window_b, window_size, overlap_window)
             
             
@@ -264,13 +266,16 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
             jb =  jt + window_size
         
             window_a = frame_a[il:ir, jt:jb]
-            
+            #plt.imshow(window_a)
             #rolling_wind_arr_test = moving_window_array(window_a_test, window_size, overlap)
-
+            
             
             rep_window_a = np.repeat(window_a[ :, :,np.newaxis], rolling_wind_arr.shape[0], axis=2)
             rep_window_a = np.rollaxis(rep_window_a,2)
-           
+            
+
+            
+            
 
             
             
@@ -282,20 +287,19 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
                 shap = int(np.sqrt( rep_window_a.shape[0]))
                 dif_sum_reshaped = np.reshape(dif_sum, (shap,shap))
                 dif_sum_reshaped = (dif_sum_reshaped*-1)+np.max(dif_sum_reshaped)
-                        
-                
-                
-                row, col = find_subpixel_peak_position(dif_sum_reshaped)
+                #plt.imshow(dif_sum_reshaped)
+                row, col = find_subpixel_peak_position(corr=dif_sum_reshaped)
                 #print(acc_iter_lst[acc_dif_lst.index(min(acc_dif_lst))])
                 #row =  row -(((search_area_size_x - window_size)//2))
                 #col =  col -(((search_area_size_x - window_size)//2))            
                 row =  row -((shap-1)/2)
                 col =  col - ((shap-1)/2)
-                
-                #print("Row")
-                #print(row)
-                #print("Col")
-                #print(col)
+
+                #if row < 1000 or col < 1000:
+                #    print(row)
+                #    print(col)
+                #    print(k)
+                #   print(m)
 
                 u[k,m],v[k,m] = col, row
             
@@ -326,7 +330,7 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
                 
                 u[k,m],v[k,m] = col, row
     
-    return u, v        
+    return u, v*-1        
     
 
     
@@ -412,15 +416,61 @@ def tst_kmeans(dataset,n_clusters = 8, outpath="", my_dpi = 100):
 
 ### DEPRICATED USE image_to_val instead!
 
+def rolling_window(a, shape):  # rolling window for 2D array
+    s = (a.shape[0] - shape[0] + 1,) + (a.shape[1] - shape[1] + 1,) + shape
+    strides = a.strides + a.strides
+    return np.lib.stride_tricks.as_strided(a, shape=s, strides=strides)
+
+#
+#iter_lst = []
+#for i in range(-max_displacement,max_displacement):
+#    # displace in x direction
+#    for k in range(-max_displacement,max_displacement):
+#        #displace in y direction
+#        iter_lst.append((i,k))
+#
 
 
 
-
-def calc_TIV(n, pertub, interval = 1, max_displacement=25, inter_window_size_y= 35, inter_window_size_x=35 , iter_lst = [], method = "greyscale"):
+def calc_IV(frame_a, frame_b, max_displacement=15, inter_window_size_y= 11, inter_window_size_x=11 , iter_lst = [], method = "greyscale"):
     # runs over all given bands
-    #n = 0
-    inter_window_size_dif_x = int((inter_window_size_x-1)/2) 
-           
+    """Compute Image Velocimetry based on each pixel in the image. 
+       
+       
+        ----------
+        Parameters
+        ----------
+        window_a : 2d np.ndarray
+            a two dimensions array for the first interrogation window, 
+        frame_a : 2d np.ndarray
+            a two dimensions array for the first image 
+        frame_b : 2d np.ndarray
+            a two dimensions array for the second image 
+        
+        max_displacement : integer
+            gives the allowance of displacement in pixels from the center of each interrogation window. Has high impact on computation time
+            default = 25 
+        inter_window_size_y/inter_window_size_x : integer
+            gives the size of the interrogation window in x and y direction
+            default = 35
+        iter_lst : list
+            depricated. This list was used to find the displacement in x and y direction
+            
+        method : defines the method after which the interrogation windows are compared to each other. 
+            default = "greyscale"
+        
+        
+        Returns
+        -------
+        stack : 3d np.ndarray
+            3d stack first one u values for corresponding image, second one v values for corresponding image
+        
+        
+    """ 
+    
+    
+    
+    inter_window_size_dif_x = int((inter_window_size_x-1)/2)    
     inter_window_size_dif_y = int((inter_window_size_y-1)/2) 
     
     
@@ -428,33 +478,29 @@ def calc_TIV(n, pertub, interval = 1, max_displacement=25, inter_window_size_y= 
     print("Processing Image")
     print(n)
     print("----------------")
-    u = np.zeros((pertub.shape[1],pertub.shape[2]))
-    v = np.zeros((pertub.shape[1], pertub.shape[2]))
+    u = np.zeros((frame_a.shape[0],frame_a.shape[1]))
+    v = np.zeros((frame_a.shape[0], frame_a.shape[1]))
     
     iterx = max_displacement+inter_window_size_dif_x -1
 
-    for l in range(max_displacement+inter_window_size_dif_y,(pertub.shape[1])-(max_displacement+inter_window_size_dif_x)):
+    for l in range(max_displacement+inter_window_size_dif_y,(frame_a.shape[0])-(max_displacement+inter_window_size_dif_x)):
         # runs over all number of columns
-        #print(l)
-        #print("of "+str((pertub.shape[1])-(max_displacement+inter_window_size_dif_x)))
-        #l = 9
         centery = l
         iterx+=1
         itery = max_displacement+inter_window_size_dif_x -1
 
-        for m in range(max_displacement+inter_window_size_dif_x,(pertub.shape[2])-(max_displacement+inter_window_size_dif_y)):
+        for m in range(max_displacement+inter_window_size_dif_x,(frame_a.shape[1])-(max_displacement+inter_window_size_dif_y)):
             # runs over all number of rows
-            #m = 10
             centerx = m
             itery+=1
 
-            disp_arr = pertub[n+interval][centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
+            disp_arr = frame_b[centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
             rolling_wind_arr = rolling_window(disp_arr, (inter_window_size_y, inter_window_size_x))
             
             rolling_wind_arr_reshaped = np.reshape(rolling_wind_arr,(rolling_wind_arr.shape[0]*rolling_wind_arr.shape[1],rolling_wind_arr.shape[2],rolling_wind_arr.shape[3]))
             
-            #inter_wind_disp_arr = pertub[n][centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
-            inter_wind1 = pertub[n][centery-inter_window_size_dif_y:centery+inter_window_size_dif_y+1,centerx-inter_window_size_dif_x:centerx+inter_window_size_dif_x+1]
+            #inter_wind_disp_arr = frame_a[centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
+            inter_wind1 = frame_a[centery-inter_window_size_dif_y:centery+inter_window_size_dif_y+1,centerx-inter_window_size_dif_x:centerx+inter_window_size_dif_x+1]
             rep_inter_wind1 = np.repeat(inter_wind1[ :, :,np.newaxis], rolling_wind_arr.shape[0]*rolling_wind_arr.shape[1], axis=2)
             rep_inter_wind1 = np.rollaxis(rep_inter_wind1,2)
             
@@ -468,27 +514,65 @@ def calc_TIV(n, pertub, interval = 1, max_displacement=25, inter_window_size_y= 
                 dif = rep_inter_wind1 - rolling_wind_arr_reshaped
                 dif_sum = np.sum(abs(dif),(1,2))
                 #print(acc_iter_lst[acc_dif_lst.index(min(acc_dif_lst))])
-                dif_sum_min_idx = np.argmin(dif_sum)
-                dif_sum_min = min(dif_sum)
-                v[iterx,itery] = iter_lst[dif_sum_min_idx][0]
-                u[iterx,itery] = iter_lst[dif_sum_min_idx][1]
-                if np.partition(dif_sum, 4)[4] == dif_sum_min  and np.partition(dif_sum, 5)[5] == dif_sum_min:
-                    v[iterx,itery] = 0
-                    u[iterx,itery] = 0
+                
+                shap = int(np.sqrt( rep_inter_wind1.shape[0]))
+                dif_sum_reshaped = np.reshape(dif_sum, (shap,shap))
+                dif_sum_reshaped = (dif_sum_reshaped*-1)+np.max(dif_sum_reshaped)
+                   
+                
+                
+                row, col = find_subpixel_peak_position(dif_sum_reshaped)
+                
+                
+                row = row-max_displacement 
+                col = col-max_displacement 
+                v[iterx,itery] = row
+                u[iterx,itery] = col
+                
+                
+                # old calculation
+                #dif_sum_min_idx = np.argmin(dif_sum)
+                #v[iterx,itery] = iter_lst[dif_sum_min_idx][0]
+                #u[iterx,itery] = iter_lst[dif_sum_min_idx][1]
+                
+                
             
             if method == "rmse":         
                 rmse = np.sqrt(np.mean((rolling_wind_arr_reshaped-rep_inter_wind1)**2,(1,2)))
+                
+                shap = int(np.sqrt( rep_inter_wind1.shape[0]))
+                rmse_reshaped = np.reshape(rmse, (shap,shap))
+                rmse_reshaped = (rmse_reshaped*-1)+np.max(rmse_reshaped)
+                
+                
+                row, col = find_subpixel_peak_position(rmse_reshaped)
+                
+                row = row-max_displacement 
+                col = col-max_displacement 
+                
+                v[iterx,itery] = row
+                u[iterx,itery] = col
+                
+                
                
-                #print(acc_iter_lst[acc_dif_lst.index(min(acc_dif_lst))])
-                dif_sum_min_idx = np.argmin(rmse)
-                dif_sum_min = min(rmse)
-                v[iterx,itery] = iter_lst[dif_sum_min_idx][0]
-                u[iterx,itery] = iter_lst[dif_sum_min_idx][1]
-                if np.partition(rmse, 4)[4] == dif_sum_min  and np.partition(rmse, 5)[5] == dif_sum_min:
-                    v[iterx,itery] = 0
-                    u[iterx,itery] = 0
 
             if method == "ssim":
+                
+                
+                ssim_lst = ssim(rolling_wind_arr_reshaped,rep_inter_wind1)
+                #dif_sum_min_idx = np.argmax(ssim_lst)
+                shap = int(np.sqrt( rep_inter_wind1.shape[0]))
+                dif_sum_reshaped = np.reshape(ssim_lst, (shap,shap))
+                plt.imshow(dif_sum_reshaped)
+                row, col = find_subpixel_peak_position(dif_sum_reshaped)
+                
+                row = row-max_displacement 
+                col = col-max_displacement 
+                
+                v[iterx,itery] = row
+                u[iterx,itery] = col
+                
+                
                 ssim_lst = ssim(rolling_wind_arr_reshaped,rep_inter_wind1)
                 dif_sum_min_idx = np.argmax(ssim_lst)
                 v[iterx,itery] = iter_lst[dif_sum_min_idx][0]
@@ -496,6 +580,8 @@ def calc_TIV(n, pertub, interval = 1, max_displacement=25, inter_window_size_y= 
              
             
     return(np.stack((u, v)))
+
+
 
 
 def streamplot_old(U, V, topo = None, vmin = -2, vmax = 2):
@@ -513,24 +599,7 @@ def streamplot_old(U, V, topo = None, vmin = -2, vmax = 2):
     
     speed = np.sqrt(U*U + V*V)
     
-    lw = 2*speed / speed.max()
-    Q = plt.streamplot(X, Y, U, V, density=1, color='k', linewidth=lw)
-    E = plt.quiver(X1, Y1, np.mean(U)*20, np.mean(V)*20*-1, color = "red",width=0.01, headwidth=3, scale=1000)
-    return(fig) 
-        
-
-
-def streamplot(U, V, X, Y, topo = None, vmin = -2, vmax = 2):
-    
-    
-    if topo is None:
-        topo = copy.copy(U)
-    fig = plt.figure()
-    I = plt.imshow(topo, cmap = "rainbow",vmin=vmin, vmax=vmax)
-    fig.colorbar(I)
-
-    speed = np.sqrt(U*U + V*V)   
-    lw = 2*speed / speed.max()
+    lw = 100*speed / speed.max()
     Q = plt.streamplot(X, Y, U, V, density=1, color='k', linewidth=lw)
     #E = plt.quiver(X1, Y1, np.mean(U)*20, np.mean(V)*20*-1, color = "red",width=0.01, headwidth=3, scale=1000)
     return(fig) 
@@ -538,78 +607,100 @@ def streamplot(U, V, X, Y, topo = None, vmin = -2, vmax = 2):
 
 
 
-
-def calc_TIV_test(n, pertub, iterx, itery, interval = 1, max_displacement=25, inter_window_size_y= 35, inter_window_size_x=35 ,inter_window_size_dif_x=10, inter_window_size_dif_y=10, iter_lst = [], method = "greyscale+"):
-    # runs over all given bands
-    n=0
-    print("Processing Image")
-    print(n)
-    print("----------------")
-    u = np.zeros((pertub.shape[1],pertub.shape[2]))
-    v = np.zeros((pertub.shape[1], pertub.shape[2]))
+#
+#
+def streamplot(U, V, X, Y, enhancement = 2, topo = None, vmin = -2, vmax = 2, cmap = "gist_rainbow", lw="ws", den = 1):
     
-    iterx = max_displacement+inter_window_size_dif_x -1
+    
+    if topo is None:
+        topo = copy.copy(U)
+    fig = plt.figure()
+    I = plt.imshow(topo, cmap = cmap,vmin=vmin, vmax=vmax)
+    fig.colorbar(I)
 
-    for l in range(max_displacement+inter_window_size_dif_y,(pertub.shape[1])-(max_displacement+inter_window_size_dif_x)):
-        # runs over all number of columns
-        l = 14
-        print(l)
-        print("of "+str((pertub.shape[1])-(max_displacement+inter_window_size_dif_x)))
-      
-        centery = l
-        iterx+=1
-        itery = max_displacement+inter_window_size_dif_x -1
-        method = "direct"
-        
-        for m in range(max_displacement+inter_window_size_dif_x,(pertub.shape[2])-(max_displacement+inter_window_size_dif_y)):
-            # runs over all number of rows
-            #m = 43
-            print(m)
-            centerx = m
-            itery+=1
-
-            disp_arr = pertub[n+interval][centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
-            inter_wind1 = pertub[n][centery-inter_window_size_dif_y:centery+inter_window_size_dif_y+1,centerx-inter_window_size_dif_x:centerx+inter_window_size_dif_x+1]
-            #plt.imshow(disp_arr)
-            #plt.imshow(inter_wind1)
-            if method == "fft": 
-                corr = correlate_windows(inter_wind1, disp_arr,
-                                         corr_method=method, 
-                                         nfftx=nfftx, nffty=nffty)
-                
-            
-            if method == "direct": 
-                 corr = correlate_windows(inter_wind1, disp_arr,
-                                         corr_method=method, 
-                                         nfftx=None, nffty=None)
-            
-            #plt.imshow(corr)    
-            #plt.colorbar()
-            #plt.imshow(pertub[0])
-            
-            row, col = find_subpixel_peak_position(corr, subpixel_method="gaussian")
-            col = np.argmax(np.max(corr, axis=1))
-            row = np.argmax(np.max(corr, axis=0))        
-            search_area_size = disp_arr.shape[0]
-            window_size = inter_window_size_x
-            row -=  (search_area_size + window_size - 1)//2
-            col -=  (search_area_size + window_size - 1)//2
-
-            # get displacements, apply coordinate system definition
-            try:
-                v[iterx,itery] =  row
-                u[iterx,itery] = -col
-            except:
-                pass
-            #u[k,m],v[k,m] = -col, row
-
-      
-            
-    return(np.stack((u, v)))
-
-
-
-
+    if lw == "ws":
+        speed = np.sqrt(U*U + V*V)   
+        lw = enhancement*speed / np.nanmax(speed)
+    
+    Q = plt.streamplot(X, Y, U, V, density=den, color='k', linewidth=lw)
+    #E = plt.quiver(X1, Y1, np.mean(U)*20, np.mean(V)*20*-1, color = "red",width=0.01, headwidth=3, scale=1000)
+    return(fig) 
+#
+#
+#
+#
+#
+#def calc_TIV_test(n, pertub, iterx, itery, interval = 1, max_displacement=25, inter_window_size_y= 35, inter_window_size_x=35 ,inter_window_size_dif_x=10, inter_window_size_dif_y=10, iter_lst = [], method = "greyscale+"):
+#    # runs over all given bands
+#    n=0
+#    print("Processing Image")
+#    print(n)
+#    print("----------------")
+#    u = np.zeros((pertub.shape[1],pertub.shape[2]))
+#    v = np.zeros((pertub.shape[1], pertub.shape[2]))
+#    
+#    iterx = max_displacement+inter_window_size_dif_x -1
+#
+#    for l in range(max_displacement+inter_window_size_dif_y,(pertub.shape[1])-(max_displacement+inter_window_size_dif_x)):
+#        # runs over all number of columns
+#        l = 14
+#        print(l)
+#        print("of "+str((pertub.shape[1])-(max_displacement+inter_window_size_dif_x)))
+#      
+#        centery = l
+#        iterx+=1
+#        itery = max_displacement+inter_window_size_dif_x -1
+#        method = "direct"
+#        
+#        for m in range(max_displacement+inter_window_size_dif_x,(pertub.shape[2])-(max_displacement+inter_window_size_dif_y)):
+#            # runs over all number of rows
+#            #m = 43
+#            print(m)
+#            centerx = m
+#            itery+=1
+#
+#            disp_arr = pertub[n+interval][centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
+#            inter_wind1 = pertub[n][centery-inter_window_size_dif_y:centery+inter_window_size_dif_y+1,centerx-inter_window_size_dif_x:centerx+inter_window_size_dif_x+1]
+#            #plt.imshow(disp_arr)
+#            #plt.imshow(inter_wind1)
+#            if method == "fft": 
+#                corr = correlate_windows(inter_wind1, disp_arr,
+#                                         corr_method=method, 
+#                                         nfftx=nfftx, nffty=nffty)
+#                
+#            
+#            if method == "direct": 
+#                 corr = correlate_windows(inter_wind1, disp_arr,
+#                                         corr_method=method, 
+#                                         nfftx=None, nffty=None)
+#            
+#            #plt.imshow(corr)    
+#            #plt.colorbar()
+#            #plt.imshow(pertub[0])
+#            
+#            row, col = find_subpixel_peak_position(corr, subpixel_method="gaussian")
+#            col = np.argmax(np.max(corr, axis=1))
+#            row = np.argmax(np.max(corr, axis=0))        
+#            search_area_size = disp_arr.shape[0]
+#            window_size = inter_window_size_x
+#            row -=  (search_area_size + window_size - 1)//2
+#            col -=  (search_area_size + window_size - 1)//2
+#
+#            # get displacements, apply coordinate system definition
+#            try:
+#                v[iterx,itery] =  row
+#                u[iterx,itery] = -col
+#            except:
+#                pass
+#            #u[k,m],v[k,m] = -col, row
+#
+#      
+#            
+#    return(np.stack((u, v)))
+#
+#
+#
+#
 
 
 
