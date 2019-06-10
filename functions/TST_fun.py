@@ -60,6 +60,39 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
 
 
 
+
+
+def create_tst_mean(array, moving_mean_size = 60):
+    # creates a moving mean around each layer in array   
+
+    resultarr = np.zeros(np.shape(array))
+    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    for i in range(0,len(array)):
+        # moving mean array = actarray:
+        if i == 0:
+            actarray = array[0:moving_mean_size*2+1]
+        elif i != 0 and i != len(array) and i-(moving_mean_size)>= 0 and i+(moving_mean_size)<= len(array)-1:
+            actarray = array[int(i-moving_mean_size):int(i+moving_mean_size)+1]
+        elif i-(moving_mean_size)<= 0:
+            actarray = array[0:moving_mean_size*2+1]   
+        elif i+(moving_mean_size)>= len(array):
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]        
+        if i == len(array)-1:
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
+        
+        resultarr[i] = np.mean(actarray, axis=0)
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+                
+    bar.finish()
+    return(resultarr)
+
+
+
+
+
 def writeNetCDF(out_dir, out_name, varname, array):
     
     # the output array to write will be nx x ny
@@ -216,7 +249,8 @@ def calc_aiv(frame_a, frame_b, window_size_x, window_size_y, overlap, max_displa
     
     
     
-def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, overlap_search_area, corr_method, search_area_size_x, search_area_size_y=0,  window_size_y=0):
+def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, overlap_search_area, corr_method, search_area_size_x, 
+                           search_area_size_y=0,  window_size_y=0, mean_analysis = True, std_analysis = True, std_threshold = 10):
     #corr_method = method
     #search_area_size_x = search_area_size 
     window_size = window_size_x
@@ -251,7 +285,8 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
             
             # pick up the window in the second image
             window_b = frame_b[il:ir, jt:jb]            
-            
+            #plt.imshow(window_b)
+            #plt.imshow(frame_b)
             #window_a_test = frame_a[il:ir, jt:jb]    
           
             rolling_wind_arr = moving_window_array(window_b, window_size, overlap_window)
@@ -294,14 +329,30 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
                 #col =  col -(((search_area_size_x - window_size)//2))            
                 row =  row -((shap-1)/2)
                 col =  col - ((shap-1)/2)
-
+                
                 #if row < 1000 or col < 1000:
                 #    print(row)
                 #    print(col)
                 #    print(k)
                 #   print(m)
-
+                
+                
+                if mean_analysis:
+                    if np.all(window_a==np.mean(window_a)): #and (not np.isnan(col) or not np.isnan(col)):
+                #        print(k)
+                #        print(m)
+                        col = np.nan
+                        row = np.nan
+                
+                if std_analysis:
+                    if np.std(window_a)< std_threshold:
+                        col = np.nan
+                        row = np.nan
+                        
+                
+                
                 u[k,m],v[k,m] = col, row
+      
             
             if corr_method == "rmse":         
                 rmse = np.sqrt(np.mean((rolling_wind_arr-rep_window_a)**2,(1,2)))
@@ -314,6 +365,20 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
                 row, col = find_subpixel_peak_position(rmse_reshaped)
                 row =  row -((shap-1)/2)
                 col =  col - ((shap-1)/2)
+                
+                 
+                if mean_analysis:
+                    if np.all(window_a==np.mean(window_a)): #and (not np.isnan(col) or not np.isnan(col)):
+                #        print(k)
+                #        print(m)
+                        col = np.nan
+                        row = np.nan
+                
+                if std_analysis:
+                    if np.std(window_a)< std_threshold:
+                        col = np.nan
+                        row = np.nan
+                
 
                 u[k,m],v[k,m] = col, row
                 
@@ -328,12 +393,58 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
                 row =  row -((shap-1)/2)
                 col =  col - ((shap-1)/2)
                 
+                if mean_analysis:
+                    if np.all(window_a==np.mean(window_a)): #and (not np.isnan(col) or not np.isnan(col)):
+                #        print(k)
+                #        print(m)
+                        col = np.nan
+                        row = np.nan
+                
+                if std_analysis:
+                    if np.std(window_a)< std_threshold:
+                        col = np.nan
+                        row = np.nan
+                
+                
                 u[k,m],v[k,m] = col, row
     
     return u, v*-1        
     
 
+
+
+def remove_outliers(array, filter_size=5, sigma=1.5):
+    returnarray = copy.copy(array)
+    filter_diff = int(filter_size/2)
+    #roll_arr = rolling_window(array, (window_size,window_size))
+    bar = progressbar.ProgressBar(maxval=array.shape[0], widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    for o in range(array.shape[0]):
+        for p in range(array.shape[1]):
+            act_px = array[o,p]
+            try:
+                act_arr = array[o-filter_diff:o+filter_diff+1,p-filter_diff:p+filter_diff+1]
+                upperlim = np.nanmean(act_arr) + sigma*np.nanstd(act_arr)
+                lowerlim = np.nanmean(act_arr) - sigma*np.nanstd(act_arr)
+                
+                if act_px< lowerlim or act_px> upperlim:
+                    returnarray[o,p] = np.nanmean(act_arr)
+            except:
+                pass
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+                
+    bar.finish()
+    return(returnarray)
+                
+
     
+    
+    
+
+
+ 
 
 def tst_kmeans(dataset,n_clusters = 8, outpath="", my_dpi = 100):
     kmean_arr = copy.copy(dataset)
@@ -408,19 +519,14 @@ def tst_kmeans(dataset,n_clusters = 8, outpath="", my_dpi = 100):
 
 
 
-
-
-
-
-
-
 ### DEPRICATED USE image_to_val instead!
 
 def rolling_window(a, shape):  # rolling window for 2D array
     s = (a.shape[0] - shape[0] + 1,) + (a.shape[1] - shape[1] + 1,) + shape
     strides = a.strides + a.strides
-    return np.lib.stride_tricks.as_strided(a, shape=s, strides=strides)
-
+    roll_wind = np.lib.stride_tricks.as_strided(a, shape=s, strides=strides)
+    roll_wind2 = np.reshape(roll_wind,(roll_wind.shape[0]*roll_wind.shape[1],roll_wind.shape[2],roll_wind.shape[3]))
+    return roll_wind2
 #
 #iter_lst = []
 #for i in range(-max_displacement,max_displacement):
@@ -495,9 +601,10 @@ def calc_IV(frame_a, frame_b, max_displacement=15, inter_window_size_y= 11, inte
             itery+=1
 
             disp_arr = frame_b[centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
-            rolling_wind_arr = rolling_window(disp_arr, (inter_window_size_y, inter_window_size_x))
+            rolling_wind_arr_reshaped = rolling_window(disp_arr, (inter_window_size_y, inter_window_size_x))
             
-            rolling_wind_arr_reshaped = np.reshape(rolling_wind_arr,(rolling_wind_arr.shape[0]*rolling_wind_arr.shape[1],rolling_wind_arr.shape[2],rolling_wind_arr.shape[3]))
+            #old - changed function
+            #rolling_wind_arr_reshaped = np.reshape(rolling_wind_arr,(rolling_wind_arr.shape[0]*rolling_wind_arr.shape[1],rolling_wind_arr.shape[2],rolling_wind_arr.shape[3]))
             
             #inter_wind_disp_arr = frame_a[centery-max_displacement-inter_window_size_dif_y:centery+max_displacement+inter_window_size_dif_y,centerx-max_displacement-inter_window_size_dif_x:centerx+max_displacement+inter_window_size_dif_x]
             inter_wind1 = frame_a[centery-inter_window_size_dif_y:centery+inter_window_size_dif_y+1,centerx-inter_window_size_dif_x:centerx+inter_window_size_dif_x+1]

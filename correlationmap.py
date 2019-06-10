@@ -103,10 +103,19 @@ corrmap = np.zeros((pertub.shape[1],pertub.shape[2]))
 for i in range(0,pertub.shape[1]):
     print(i)
     for j in range(0,pertub.shape[2]):
-        corrmap[i,j] = np.corrcoef(minmean(irg2_subset.iloc[:,1],10),pertub[21:,i,j])[0,1]
+        corrmap[i,j] = np.corrcoef(minmean(irg2_subset.iloc[:,3],10),pertub[21:,i,j])[0,1]
 
+plt.imshow(pertub[45])
 
+my_dpi = 1200
+outpath="/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/corrmaps/"
 plt.imshow(corrmap)
+plt.colorbar()
+plt.savefig(outpath+"w_corrmap.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+plt.close()
+
+
+
 corrmap.max()
 
 

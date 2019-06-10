@@ -82,23 +82,30 @@ get_field_shape(pertub[i].shape, sa, olsa )
 (pertub[i].shape[1] - sa) // (sa - olsa) + 1
 
 for i in range(0, len(pertub)-6):
-    i = 0
+    print(i)
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+6], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, search_area_size_x=sa, corr_method=method)
     x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
 
 
-    v= np.reshape(v1,((1,v.shape[0],v.shape[1])))
-    u= np.reshape(u1,((1,u.shape[0],u.shape[1])))
+    v= np.reshape(v,((1,v.shape[0],v.shape[1])))
+    u= np.reshape(u,((1,u.shape[0],u.shape[1])))
 
     if i == 0:
-            uas =  copy.copy(u)
-            vas =  copy.copy(v)
+        uas =  copy.copy(u)
+        vas =  copy.copy(v)
 
-        else:
-            uas2 = np.append(uas,u,0)
-            vas2 = np.append(vas,v,0)
+    else:
+        uas = np.append(uas,u,0)
+        vas = np.append(vas,v,0)
 
 
+writeNetCDF(outpath, 'UAS.netcdf', 'u', uas)
+
+writeNetCDF(outpath, 'VAS.netcdf', 'v', vas)
+
+writeNetCDF(outpath, 'WS.netcdf', 'ws', calcwindspeed(uas,vas)*0.2)
+
+writeNetCDF(outpath, 'WD.netcdf', 'wd', calcwinddirection(uas,vas))
 
 
 

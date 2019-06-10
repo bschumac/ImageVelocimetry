@@ -25,9 +25,13 @@ import scipy.cluster.vq as scv
 ### FILE 1: Write Data to RBG PNG Files
 ### read them and create a random forest model
 
-T1 = True
-start_img = 18000
-end_img = 19500+27000
+T1 = False
+fire1 = True
+
+start_img = 15300
+end_img = start_img+1000
+
+org_start = 12300
 #end_img = 68001
 
 
@@ -51,9 +55,27 @@ if T1:
     image_type2 = ".tif"
     fls = os.listdir(datapath)
     fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
+
+elif fire1:
+    org_datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/"
+    #img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif/"
+    img_datapath1 = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier03/Optris_ascii/O80_220319_high_P1_RGB/"
+    # first try:
+    #img_datapath2 = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab/"
+    
+    # black edge not anti alias
+    #img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_cut/"
+    
+    # virdris images:
+    img_datapath2="/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier04/O80_220319_high_P1_RGB_stab/"
     
     
-    
+    datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier02/Optris_ascii/O80_220319_high_P1/"
+    image_type1 = ".tif"
+    image_type2 = ".tif"
+    fls = os.listdir(datapath)
+    fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
+      
 else:
     image_type1 = ".tif"
     image_type2 = ".png"
@@ -63,6 +85,12 @@ else:
     tb= file.get("Tb")
     end_img = len(tb)
 
+    
+ 
+
+    
+    
+  
 
 MAE_lst = []
 RMSE_lst = []
@@ -73,8 +101,9 @@ len(fls)
 # original data
 
 counter = 0
-for i in range(18000,68000, 40): 
-    print(counter)
+for i in range(start_img,end_img, 1): 
+    if counter%100 == 0:
+        print(counter)
     my_data = np.genfromtxt(datapath+fls[i], delimiter=',', skip_header=1)
     my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
     if counter == 0:
@@ -84,8 +113,161 @@ for i in range(18000,68000, 40):
     #org_data[counter] = my_data 
     counter+=1
 
-np.save("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data.npy", org_data)
+#np.save("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data.npy", org_data)
 #org_data = np.load("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_2Hz_org_data.npy")
+
+
+
+# random forest
+
+#org_data2[org_data2<30] = 70
+
+
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+for i in range(start_img-org_start,end_img-org_start):
+    print(i)
+    image_file=img_datapath1+str(i)+image_type1
+    org_data_rgb=plt.imread(image_file)
+    org_data_rgb=org_data_rgb[:,:,0:3]
+    #org_data_rgb=org_data_rgb[50:200,50:250,0:3]
+    #plt.imshow(org_data_rgb)
+    #plt.imshow(final_pred_stab[0],cmap=cm.jet)
+    
+    
+    image_file=img_datapath2+format(i+1, '04d')+image_type2
+    stab_data_rgb=plt.imread(image_file)
+    stab_data_rgb=stab_data_rgb[:,:,0:3]
+    #stab_data_rgb = stab_data_rgb*255
+    
+    i = i - 3000
+    org_data_subset = org_data[i]#[50:200,50:250]
+    org_data_labels = org_data_subset.reshape(org_data_subset.shape[0]*org_data_subset.shape[1])
+    org_data_rgb_features = org_data_rgb.reshape((org_data_rgb.shape[0]*org_data_rgb.shape[1],org_data_rgb.shape[2]))
+    
+    features = org_data_rgb_features
+    labels =  org_data_labels
+
+    print("Create Random Forest Model ...")
+    
+    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.05, random_state = 42)
+    
+    # Import the model we are using
+
+    # Instantiate model with 1000 decision trees
+    rf = ExtraTreesRegressor(n_estimators = 100, random_state = 42, n_jobs = 4)
+    
+    # Train the model on training data
+    rf.fit(train_features, train_labels);
+    
+    
+    
+    predictions = rf.predict(test_features)
+    
+    # Calculate the absolute errors
+    errors = abs(predictions - test_labels)
+    rmse_error = np.sqrt(np.mean((predictions-test_labels)**2))
+    MAE_lst.append(errors)
+    RMSE_lst.append(rmse_error)
+    # Print out the mean absolute error (mae)
+    print('Mean Absolute Error:', round(np.mean(errors), 2), 'degrees. The RMSE is: '+ str(round(rmse_error,3)))
+    print("Finished Creating Model")
+    print("-----------------------------------------------------")
+    
+    
+    print("Predicting whole stabilzed dataset")
+
+    stab_data_rgb_features = stab_data_rgb.reshape((stab_data_rgb.shape[0]*stab_data_rgb.shape[1],stab_data_rgb.shape[2]))
+    
+    predictions_stab = rf.predict(stab_data_rgb_features)
+    pred_stab_reshaped = np.reshape(predictions_stab,(1,stab_data_rgb.shape[0],stab_data_rgb.shape[1]))
+    if i == 0:
+        final_pred_stab = copy.copy(pred_stab_reshaped)
+    else:
+        final_pred_stab = np.append(final_pred_stab,pred_stab_reshaped,0)
+
+
+writeNetCDF(org_datapath,"Tb_stab_27Hz.nc","Tb_pertub",final_pred_stab)
+
+
+
+
+counter = 0
+outpath = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif_BW/"
+for i in range(0,len(org_data), 1):      
+    my_data = org_data[i]
+    print("Writing File " +str(i)+".png from "+str(len(fls)))
+    fig = plt.figure(figsize=(322/my_dpi, 243/my_dpi), dpi=my_dpi)
+    ax1 = plt.subplot(111)
+    #u_xz_norm =  (u_xz - Tb_MIN) / (Tb_MAX-Tb_MIN)
+    im=ax1.imshow(my_data,interpolation=None,cmap=cm.Greys)
+    ax1.axis("off")
+    im.axes.get_xaxis().set_visible(False)
+    im.axes.get_yaxis().set_visible(False)
+    plt.subplots_adjust(left=0,right=1,bottom=0,top=1)
+    plt.savefig(outpath+str(counter)+".tif",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+    plt.close()
+    counter +=1
+
+
+
+stab_data_bw_arr = copy.copy(final_pred_stab)
+img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_BW/"
+
+
+for i in range(0,len(org_data)):
+    print(i)
+    image_file=img_datapath2+format(i, '04d')+image_type2
+    stab_data_bw=plt.imread(image_file)
+    stab_data_bw_arr[i] = stab_data_bw
+
+
+
+
+
+# template matching
+     
+
+
+plt.imshow(pred_stab_reshaped)
+
+
+
+
+Tb_org_pertub = create_tst_pertubations_mm(final_pred_stab, 40)
+
+Tb_stab_pertub_py = create_tst_pertubations_mm(stab_data_bw_arr, 120)
+
+writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris.nc","Tb_pertub",Tb_org_pertub)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+
+################### OLD STUFF ###########################
+
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
 
 
 import cv2
@@ -194,158 +376,6 @@ org_data3 = copy.copy(final_pred_stab)
 
 
 
-# random forest
-
-#org_data2[org_data2<30] = 70
-
-
-
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import ExtraTreesRegressor
-for i in range(0,len(org_data)):
-    print(i)
-    image_file=img_datapath1+str(i)+image_type1
-    org_data_rgb=plt.imread(image_file)
-    org_data_rgb=org_data_rgb[:,:,0:3]
-    #org_data_rgb=org_data_rgb[50:200,50:250,0:3]
-    #plt.imshow(org_data_rgb)
-    #plt.imshow(final_pred_stab[0],cmap=cm.jet)
-    
-    
-    image_file=img_datapath2+format(i+1, '04d')+image_type2
-    stab_data_rgb=plt.imread(image_file)
-    stab_data_rgb=stab_data_rgb[:,:,0:3]
-    #stab_data_rgb = stab_data_rgb*255
-    
-    org_data_subset = org_data[i]#[50:200,50:250]
-    org_data_labels = org_data_subset.reshape(org_data_subset.shape[0]*org_data_subset.shape[1])
-    org_data_rgb_features = org_data_rgb.reshape((org_data_rgb.shape[0]*org_data_rgb.shape[1],org_data_rgb.shape[2]))
-    
-    features = org_data_rgb_features
-    labels =  org_data_labels
-
-    print("Create Random Forest Model ...")
-    
-    train_features, test_features, train_labels, test_labels = train_test_split(features, labels, test_size = 0.05, random_state = 42)
-    
-    # Import the model we are using
-
-    # Instantiate model with 1000 decision trees
-    rf = ExtraTreesRegressor(n_estimators = 100, random_state = 42, n_jobs = -1)
-    
-    # Train the model on training data
-    rf.fit(train_features, train_labels);
-    
-    
-    
-    predictions = rf.predict(test_features)
-    
-    # Calculate the absolute errors
-    errors = abs(predictions - test_labels)
-    rmse_error = np.sqrt(np.mean((predictions-test_labels)**2))
-    MAE_lst.append(errors)
-    RMSE_lst.append(rmse_error)
-    # Print out the mean absolute error (mae)
-    print('Mean Absolute Error:', round(np.mean(errors), 2), 'degrees. The RMSE is: '+ str(round(rmse_error,3)))
-    print("Finished Creating Model")
-    print("-----------------------------------------------------")
-    
-    
-    print("Predicting whole stabilzed dataset")
-
-    stab_data_rgb_features = stab_data_rgb.reshape((stab_data_rgb.shape[0]*stab_data_rgb.shape[1],stab_data_rgb.shape[2]))
-    
-    predictions_stab = rf.predict(stab_data_rgb_features)
-    pred_stab_reshaped = np.reshape(predictions_stab,(1,stab_data_rgb.shape[0],stab_data_rgb.shape[1]))
-    if i == 0:
-        final_pred_stab = copy.copy(pred_stab_reshaped)
-    else:
-        final_pred_stab = np.append(final_pred_stab,pred_stab_reshaped,0)
-
-
-writeNetCDF(org_datapath,"Tb_stab_virdris.nc","Tb_pertub",final_pred_stab)
-
-
-
-
-counter = 0
-outpath = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif_BW/"
-for i in range(0,len(org_data), 1):      
-    my_data = org_data[i]
-    print("Writing File " +str(i)+".png from "+str(len(fls)))
-    fig = plt.figure(figsize=(322/my_dpi, 243/my_dpi), dpi=my_dpi)
-    ax1 = plt.subplot(111)
-    #u_xz_norm =  (u_xz - Tb_MIN) / (Tb_MAX-Tb_MIN)
-    im=ax1.imshow(my_data,interpolation=None,cmap=cm.Greys)
-    ax1.axis("off")
-    im.axes.get_xaxis().set_visible(False)
-    im.axes.get_yaxis().set_visible(False)
-    plt.subplots_adjust(left=0,right=1,bottom=0,top=1)
-    plt.savefig(outpath+str(counter)+".tif",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-    plt.close()
-    counter +=1
-
-
-
-stab_data_bw_arr = copy.copy(final_pred_stab)
-img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_BW/"
-
-
-for i in range(0,len(org_data)):
-    print(i)
-    image_file=img_datapath2+format(i, '04d')+image_type2
-    stab_data_bw=plt.imread(image_file)
-    stab_data_bw_arr[i] = stab_data_bw
-
-
-
-# linear model 
-
-for i in range(0,len(org_data)):
-    print(i)
-    image_file=img_datapath1+str(i)+image_type1
-    org_data_rgb=plt.imread(image_file)
-    org_data_rgb=org_data_rgb[:,:,0:3]
-    #org_data_rgb=org_data_rgb[100:250,100:350,0:3]
-
-    
-    image_file=img_datapath2+format(i, '04d')+image_type2
-    stab_data_rgb=plt.imread(image_file)
-    stab_data_rgb=stab_data_rgb[:,:,0:3]
-    
-    Stock_Market ={'B': org_data_rgb[:,:,0].flatten().tolist(),
-                    'G': org_data_rgb[:,:,1].flatten().tolist(),
-                    'R': org_data_rgb[:,:,2].flatten().tolist(),
-                    'Val':  org_data[i].flatten().tolist()}      
-    
-    df = DataFrame(Stock_Market,columns=['B','G','R','Val'])
-    
-    
-    X = df[['B','G', 'R']] # here we have 2 variables for multiple regression. If you just want to use one variable for simple linear regression, then use X = df['Interest_Rate'] for example.Alternatively, you may add additional variables within the brackets
-    Y = df['Val']
-    
-    
-    
-    predictors = {'B': stab_data_rgb[:,:,0].flatten().tolist(),
-                    'G': stab_data_rgb[:,:,1].flatten().tolist(),
-                    'R': stab_data_rgb[:,:,2].flatten().tolist()}
-    
-    dfpred = DataFrame(predictors,columns=['B','G','R'])
-    pred = dfpred[['B','G', 'R']]
-    len(org_data_rgb[2].flatten().tolist()) 
-    # with sklearn
-    clf = linear_model.LinearRegression()
-    clf.fit(X, Y)  
-    clf.coef_      
-    pred_stab = clf.predict(pred)        
-    pred_stab_reshaped = np.reshape(pred_stab,(1,stab_data_rgb.shape[0],stab_data_rgb.shape[1]))
-    if i == 0:
-        final_pred_stab = copy.copy(pred_stab_reshaped)
-    else:
-        final_pred_stab = np.append(final_pred_stab,pred_stab_reshaped,0)       
-    
-
-
 
 
 
@@ -396,54 +426,6 @@ for i in range(0,len(org_data)):
         final_pred_stab = copy.copy(pred_stab_reshaped)
     else:
         final_pred_stab = np.append(final_pred_stab,pred_stab_reshaped,0)         
-
-
-
-
-
-
-
-# template matching
-     
-
-
-plt.imshow(pred_stab_reshaped)
-
-
-
-
-Tb_org_pertub = create_tst_pertubations_mm(final_pred_stab, 40)
-
-Tb_stab_pertub_py = create_tst_pertubations_mm(stab_data_bw_arr, 120)
-
-writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris.nc","Tb_pertub",Tb_org_pertub)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-
-################### OLD STUFF ###########################
-
-
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 
 
 
@@ -635,6 +617,54 @@ Tb_stab_pertub_py = create_tst_pertubations_mm(pred_stab_reshaped2)
 writeNetCDF(org_datapath,"Tb_stab_rect_pertub_py.nc","Tb_pertub",Tb_stab_pertub_py)
 
     
+
+
+# linear model 
+
+for i in range(0,len(org_data)):
+    print(i)
+    image_file=img_datapath1+str(i)+image_type1
+    org_data_rgb=plt.imread(image_file)
+    org_data_rgb=org_data_rgb[:,:,0:3]
+    #org_data_rgb=org_data_rgb[100:250,100:350,0:3]
+
+    
+    image_file=img_datapath2+format(i, '04d')+image_type2
+    stab_data_rgb=plt.imread(image_file)
+    stab_data_rgb=stab_data_rgb[:,:,0:3]
+    
+    Stock_Market ={'B': org_data_rgb[:,:,0].flatten().tolist(),
+                    'G': org_data_rgb[:,:,1].flatten().tolist(),
+                    'R': org_data_rgb[:,:,2].flatten().tolist(),
+                    'Val':  org_data[i].flatten().tolist()}      
+    
+    df = DataFrame(Stock_Market,columns=['B','G','R','Val'])
+    
+    
+    X = df[['B','G', 'R']] # here we have 2 variables for multiple regression. If you just want to use one variable for simple linear regression, then use X = df['Interest_Rate'] for example.Alternatively, you may add additional variables within the brackets
+    Y = df['Val']
+    
+    
+    
+    predictors = {'B': stab_data_rgb[:,:,0].flatten().tolist(),
+                    'G': stab_data_rgb[:,:,1].flatten().tolist(),
+                    'R': stab_data_rgb[:,:,2].flatten().tolist()}
+    
+    dfpred = DataFrame(predictors,columns=['B','G','R'])
+    pred = dfpred[['B','G', 'R']]
+    len(org_data_rgb[2].flatten().tolist()) 
+    # with sklearn
+    clf = linear_model.LinearRegression()
+    clf.fit(X, Y)  
+    clf.coef_      
+    pred_stab = clf.predict(pred)        
+    pred_stab_reshaped = np.reshape(pred_stab,(1,stab_data_rgb.shape[0],stab_data_rgb.shape[1]))
+    if i == 0:
+        final_pred_stab = copy.copy(pred_stab_reshaped)
+    else:
+        final_pred_stab = np.append(final_pred_stab,pred_stab_reshaped,0)       
+    
+
 
 
 
