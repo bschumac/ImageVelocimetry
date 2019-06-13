@@ -11,7 +11,7 @@ import multiprocessing
 from skimage.util.dtype import dtype_range
 from scipy.signal import convolve2d
 from numpy import log
-from openpiv_fun import *
+from functions.openpiv_fun import *
 import sklearn.cluster
 
 import matplotlib.patches as patches
