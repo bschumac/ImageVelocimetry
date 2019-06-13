@@ -53,12 +53,12 @@ if T1:
     
     
     
-    #org_datapath = "/data/TST/data/"
-    #img_datapath1 = "/data/TST/data/Tier01/Flight03_O80_1616_tif_viridis/"
-    #img_datapath2="/data/TST/data/Tier02/Flight03_O80_1616_stab_tif_virdris_20Hz/"
+    org_datapath = "/data/TST/data/"
+    img_datapath1 = "/data/TST/data/Tier01/Flight03_O80_1616_tif_viridis/"
+    img_datapath2="/data/TST/data/Tier02/Flight03_O80_1616_stab_tif_virdris_20Hz/"
     
-    #datapath = "/data/TST/data/Tier01/Flight03_O80_1616/"
-    datapath = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616/"
+    datapath = "/data/TST/data/Tier01/Flight03_O80_1616/"
+    #datapath = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616/"
     image_type1 = ".tif"
     image_type2 = ".tif"
     fls = os.listdir(datapath)
