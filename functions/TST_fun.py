@@ -5,6 +5,18 @@ import matplotlib.pyplot as plt
 import copy
 
 
+from matplotlib import cm 
+from joblib import Parallel, delayed
+import multiprocessing
+from skimage.util.dtype import dtype_range
+from scipy.signal import convolve2d
+from numpy import log
+from openpiv_fun import *
+import sklearn.cluster
+
+import matplotlib.patches as patches
+
+
 
 def calcwinddirection(u,v): 
     
@@ -119,52 +131,40 @@ def writeNetCDF(out_dir, out_name, varname, array):
     ncfile.close()
     print ('*** SUCCESS writing example file'+ file_dest)
 
-
-
-
-def write_png_files_from_Tb(datapath,Tb_filename,out_fld_name,my_dpi=100,verbose = True):   
-    file = h5py.File(datapath+Tb_filename,'r')
-    Tb = file.get("Tb")
-    
-    Tb_MIN = float(np.amin(Tb))
-    Tb_MAX = float(np.amax(Tb))
-    Tb_MIN = Tb_MIN - 1
-    Tb_MAX = Tb_MAX + 1
-    
-    
-    plt.rc('text', usetex=False)
-    
-    Tb = np.rot90(Tb,-1, axes=(1,-1))
-    Tb = np.flip(Tb,-1)
-    for i in range(0,len(Tb)):
-        if verbose:
-            print("Writing File " +str(i)+".png from "+str(len(Tb)))
-        fig = plt.figure(figsize=(382/my_dpi, 288/my_dpi), dpi=my_dpi)
-        ax1 = plt.subplot(111)
-        u_xz = Tb[i]
-        u_xz_norm = u_xz
-        #u_xz_norm =  (u_xz - Tb_MIN) / (Tb_MAX-Tb_MIN)
-        im=ax1.imshow(u_xz_norm,interpolation=None,cmap=cm.jet)
-        ax1.axis("off")
-        im.axes.get_xaxis().set_visible(False)
-        im.axes.get_yaxis().set_visible(False)
-        plt.subplots_adjust(left=0,right=1,bottom=0,top=1)
-        plt.savefig(datapath+out_fld_name+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-        plt.close()
-        
- 
-
-import h5py
-from matplotlib import cm 
-from joblib import Parallel, delayed
-import multiprocessing
-from skimage.util.dtype import dtype_range
-from scipy.signal import convolve2d
-from numpy import log
-from openpiv_fun import *
-import sklearn.cluster
-
-import matplotlib.patches as patches
+#
+#import h5py
+#
+#def write_png_files_from_Tb(datapath,Tb_filename,out_fld_name,my_dpi=100,verbose = True):   
+#    file = h5py.File(datapath+Tb_filename,'r')
+#    Tb = file.get("Tb")
+#    
+#    Tb_MIN = float(np.amin(Tb))
+#    Tb_MAX = float(np.amax(Tb))
+#    Tb_MIN = Tb_MIN - 1
+#    Tb_MAX = Tb_MAX + 1
+#    
+#    
+#    plt.rc('text', usetex=False)
+#    
+#    Tb = np.rot90(Tb,-1, axes=(1,-1))
+#    Tb = np.flip(Tb,-1)
+#    for i in range(0,len(Tb)):
+#        if verbose:
+#            print("Writing File " +str(i)+".png from "+str(len(Tb)))
+#        fig = plt.figure(figsize=(382/my_dpi, 288/my_dpi), dpi=my_dpi)
+#        ax1 = plt.subplot(111)
+#        u_xz = Tb[i]
+#        u_xz_norm = u_xz
+#        #u_xz_norm =  (u_xz - Tb_MIN) / (Tb_MAX-Tb_MIN)
+#        im=ax1.imshow(u_xz_norm,interpolation=None,cmap=cm.jet)
+#        ax1.axis("off")
+#        im.axes.get_xaxis().set_visible(False)
+#        im.axes.get_yaxis().set_visible(False)
+#        plt.subplots_adjust(left=0,right=1,bottom=0,top=1)
+#        plt.savefig(datapath+out_fld_name+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+#        plt.close()
+#        
+# 
 
 
 
