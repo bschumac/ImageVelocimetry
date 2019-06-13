@@ -15,7 +15,7 @@ from matplotlib import colors, cm
 import progressbar
 from joblib import Parallel, delayed
 import multiprocessing
-from TST_fun import *
+from functions.TST_fun import *
 from scipy import stats
 import datetime
 from math import sqrt
@@ -47,7 +47,7 @@ my_dpi = 300
 ws=16
 ol = 15
 sa = 32
-olsa = 31
+olsa = 28
 
 outpath = datapath+"tiv/method_"+method+"_WS_"+str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"/"
 
@@ -75,18 +75,33 @@ pertub[6,25+20:55+20,315+20:330+20] = 25
 
 
 
-plt.imshow(pertub[6])
+plt.imshow(pertub[10]-pertub[10+1])
 pertub[0].shape
-u.shape
-get_field_shape(pertub[i].shape, sa, olsa )
-(pertub[i].shape[1] - sa) // (sa - olsa) + 1
+len(pertub)-6)
 
-for i in range(0, len(pertub)-6):
+    
+pertub = create_tst_mean(pertub,20)    
+    
+for i in range(240, 300):
+    
     print(i)
-    u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+6], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, search_area_size_x=sa, corr_method=method)
+    u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+1], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
+                                 search_area_size_x=sa, corr_method=method, mean_analysis = True, std_analysis = False, std_threshold = 1)
     x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
-
-
+    
+    u = remove_outliers(u,filter_size=9, sigma=1)
+    v = remove_outliers(v, filter_size=9, sigma=1)
+    
+    my_dpi=300
+    plt.imshow(pertub[i], vmin = -1, vmax=1, cmap = "gist_rainbow_r")
+    plt.colorbar()
+    plt.quiver(x,y,np.flipud(np.round(u,2)),np.flipud(np.round(v,2)))
+    plt.savefig(outpath+str(i+120)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+    plt.close()
+    
+    
+    plt.imshow(u)
+    
     v= np.reshape(v,((1,v.shape[0],v.shape[1])))
     u= np.reshape(u,((1,u.shape[0],u.shape[1])))
 
