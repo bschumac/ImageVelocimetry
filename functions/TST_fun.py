@@ -2,18 +2,9 @@ import numpy as np
 import progressbar
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
-import scipy.cluster.vq as scv
-import h5py
-from matplotlib import cm 
-from joblib import Parallel, delayed
-import multiprocessing
-from skimage.util.dtype import dtype_range
-from scipy.signal import convolve2d
-from numpy import log
-from openpiv_fun import *
-import sklearn.cluster
 import copy
-import matplotlib.patches as patches
+
+
 
 def calcwinddirection(u,v): 
     
@@ -129,6 +120,8 @@ def writeNetCDF(out_dir, out_name, varname, array):
     print ('*** SUCCESS writing example file'+ file_dest)
 
 
+
+
 def write_png_files_from_Tb(datapath,Tb_filename,out_fld_name,my_dpi=100,verbose = True):   
     file = h5py.File(datapath+Tb_filename,'r')
     Tb = file.get("Tb")
@@ -160,6 +153,18 @@ def write_png_files_from_Tb(datapath,Tb_filename,out_fld_name,my_dpi=100,verbose
         plt.close()
         
  
+
+import h5py
+from matplotlib import cm 
+from joblib import Parallel, delayed
+import multiprocessing
+from skimage.util.dtype import dtype_range
+from scipy.signal import convolve2d
+from numpy import log
+from openpiv_fun import *
+import sklearn.cluster
+
+import matplotlib.patches as patches
 
 
 

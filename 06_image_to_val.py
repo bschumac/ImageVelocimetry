@@ -3,7 +3,7 @@ import numpy as np
 import h5py
 import copy
 from sklearn.model_selection import train_test_split
-from TST_fun import create_tst_pertubations_mm, writeNetCDF
+from functions.TST_fun import create_tst_pertubations_mm, writeNetCDF, create_tst_mean
 import progressbar
 import os
 
