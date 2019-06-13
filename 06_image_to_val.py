@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import h5py
 import copy
 from sklearn.model_selection import train_test_split
 from functions.TST_fun import create_tst_pertubations_mm, writeNetCDF, create_tst_mean
