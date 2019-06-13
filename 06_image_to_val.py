@@ -9,15 +9,14 @@ import os
 
 from scipy import ndimage
 
-import cv2
-import numpy as np
-from matplotlib import pyplot as plt
-from sklearn import linear_model 
-from pandas import DataFrame  
+#import cv2
+#from matplotlib import pyplot as plt
+#from sklearn import linear_model 
+#from pandas import DataFrame  
 
 
 import matplotlib.cm as cm
-import scipy.cluster.vq as scv
+#import scipy.cluster.vq as scv
 
 
     
