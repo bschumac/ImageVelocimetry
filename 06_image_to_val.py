@@ -25,11 +25,15 @@ import scipy.cluster.vq as scv
 ### FILE 1: Write Data to RBG PNG Files
 ### read them and create a random forest model
 
-T1 = False
-fire1 = True
+T1 = True
+fire1 = False
 
-start_img = 15300
-end_img = start_img+1000
+if T1:
+    start_img = 18500
+    end_img = 68000
+    
+#start_img = 15300
+#end_img = start_img+1000
 
 org_start = 12300
 #end_img = 68001
@@ -47,7 +51,7 @@ if T1:
     #img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_cut/"
     
     # virdris images:
-    img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_virdris/"
+    img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_virdris_20Hz/"
     
     
     datapath = "/media/benjamin/Seagate Expansion Drive/T1/data/Optris_data_120119/Tier01/Flight03_O80_1616/"
@@ -88,7 +92,8 @@ else:
     
  
 
-    
+fls2 = os.listdir(img_datapath2)
+fls2 = sorted(fls2, key = lambda x: x.rsplit('.', 1)[0])
     
   
 
@@ -96,12 +101,15 @@ MAE_lst = []
 RMSE_lst = []
 #end_img
 
-len(fls)
+len(fls2)
+
+
 
 # original data
 
 counter = 0
-for i in range(start_img,end_img, 1): 
+for i in range(0,end_img, 1): 
+    
     if counter%100 == 0:
         print(counter)
     my_data = np.genfromtxt(datapath+fls[i], delimiter=',', skip_header=1)
@@ -123,10 +131,19 @@ for i in range(start_img,end_img, 1):
 #org_data2[org_data2<30] = 70
 
 
-
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor
-for i in range(start_img-org_start,end_img-org_start):
+
+for i in range(0,int(len(fls2)/2)):
+    
+    
+    # read original file
+    
+    
+    
+    org_data = np.genfromtxt(datapath+fls[i+18500], delimiter=',', skip_header=1)
+
+    
     print(i)
     image_file=img_datapath1+str(i)+image_type1
     org_data_rgb=plt.imread(image_file)
@@ -140,9 +157,8 @@ for i in range(start_img-org_start,end_img-org_start):
     stab_data_rgb=plt.imread(image_file)
     stab_data_rgb=stab_data_rgb[:,:,0:3]
     #stab_data_rgb = stab_data_rgb*255
-    
-    i = i - 3000
-    org_data_subset = org_data[i]#[50:200,50:250]
+     
+    org_data_subset = org_data#[i]#[50:200,50:250]
     org_data_labels = org_data_subset.reshape(org_data_subset.shape[0]*org_data_subset.shape[1])
     org_data_rgb_features = org_data_rgb.reshape((org_data_rgb.shape[0]*org_data_rgb.shape[1],org_data_rgb.shape[2]))
     
@@ -156,7 +172,7 @@ for i in range(start_img-org_start,end_img-org_start):
     # Import the model we are using
 
     # Instantiate model with 1000 decision trees
-    rf = ExtraTreesRegressor(n_estimators = 100, random_state = 42, n_jobs = 4)
+    rf = ExtraTreesRegressor(n_estimators = 500, random_state = 42, n_jobs = -1)
     
     # Train the model on training data
     rf.fit(train_features, train_labels);
@@ -188,7 +204,35 @@ for i in range(start_img-org_start,end_img-org_start):
         final_pred_stab = np.append(final_pred_stab,pred_stab_reshaped,0)
 
 
-writeNetCDF(org_datapath,"Tb_stab_27Hz.nc","Tb_pertub",final_pred_stab)
+writeNetCDF(org_datapath,"Tb_stab_20Hz.nc","Tb_pertub",final_pred_stab)
+
+
+Tb_stab_pertub_py = create_tst_pertubations_mm(final_pred_stab, 400)
+
+writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris_20Hz.nc","Tb_pertub",Tb_stab_pertub_py)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -236,10 +280,6 @@ plt.imshow(pred_stab_reshaped)
 
 
 Tb_org_pertub = create_tst_pertubations_mm(final_pred_stab, 40)
-
-Tb_stab_pertub_py = create_tst_pertubations_mm(stab_data_bw_arr, 120)
-
-writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris.nc","Tb_pertub",Tb_org_pertub)
 
 
 

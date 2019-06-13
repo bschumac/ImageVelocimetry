@@ -18,7 +18,7 @@ datapath = "/media/benjamin/Seagate Expansion Drive/T1/data/Optris_data_120119/T
 
 #datapath="/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier02/Optris_ascii/O80_220319_high_P1/"
 
-start_img = 42000
+start_img = 18500
 end_img = 68000
 
 
