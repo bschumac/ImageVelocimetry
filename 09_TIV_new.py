@@ -80,7 +80,7 @@ pertub[time_interval,25+20:55+20,315+20:330+20] = 25
 plt.imshow(pertub[10]-pertub[10+1])
 pertub[0].shape
 #len(pertub)-time_interval)
-#
+#asdsadgfdsag
     
 pertub = create_tst_mean(pertub,20)    
     
