@@ -43,6 +43,8 @@ pertub = np.array(pertub)
 
 method = "greyscale"
 my_dpi = 300
+time_interval = 1
+
 
 ws=16
 ol = 15
@@ -63,10 +65,10 @@ pertub[0,215:225,215:225] = 25
 pertub[0,25:55,315:330] = 25
 
 
-pertub[6,145+12:154+12,145+12:160+12] = 25
-pertub[6,15+12:25+12,15+12:25+12] = 25
-pertub[6,215+12:225+12,215+12:225+12] = 25
-pertub[6,25+20:55+20,315+20:330+20] = 25
+pertub[time_interval,145+12:154+12,145+12:160+12] = 25
+pertub[time_interval,15+12:25+12,15+12:25+12] = 25
+pertub[time_interval,215+12:225+12,215+12:225+12] = 25
+pertub[time_interval,25+20:55+20,315+20:330+20] = 25
 
 
 
@@ -77,15 +79,15 @@ pertub[6,25+20:55+20,315+20:330+20] = 25
 
 plt.imshow(pertub[10]-pertub[10+1])
 pertub[0].shape
-len(pertub)-6)
-
+#len(pertub)-time_interval)
+#
     
 pertub = create_tst_mean(pertub,20)    
     
 for i in range(240, 300):
     
     print(i)
-    u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+1], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
+    u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
                                  search_area_size_x=sa, corr_method=method, mean_analysis = True, std_analysis = False, std_threshold = 1)
     x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
     
