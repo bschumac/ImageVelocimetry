@@ -216,9 +216,9 @@ final_pred_stab = retrievevalues(datapath_csv_files = datapath, datapath_rbg_fil
 
 
 
-writeNetCDF(org_datapath,"Tb_stab_20Hz.nc","Tb",final_pred_stab[0])
-Tb_stab_pertub_py = create_tst_pertubations_mm(final_pred_stab, 400)
-writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris_20Hz.nc","Tb_pertub",Tb_stab_pertub_py)
+#writeNetCDF(org_datapath,"Tb_stab_20Hz.nc","Tb",final_pred_stab[0])
+#Tb_stab_pertub_py = create_tst_pertubations_mm(final_pred_stab, 400)
+#writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris_20Hz.nc","Tb_pertub",Tb_stab_pertub_py)
 
 with open(org_datapath+'MAE_lst.txt', 'w') as f:
     for item in final_pred_stab[1]:
