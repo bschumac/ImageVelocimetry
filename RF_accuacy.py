@@ -45,7 +45,8 @@ img_datapath2="/data/TST/data/Tier02/Flight03_O80_1616_stab_tif_virdris_20Hz/"
 datapath_csv_files = "/data/TST/data/Tier01/Flight03_O80_1616/"
 fls = os.listdir(datapath_csv_files)
 fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
-    
+start_img = 18500
+end_img = 68000   
     
 
 print("Reading original data to RAM...")
