@@ -47,7 +47,7 @@ fls = os.listdir(datapath_csv_files)
 fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
 start_img = 18500
 end_img = 68000   
-    
+interval=4    
 
 print("Reading original data to RAM...")
 counter = 0
