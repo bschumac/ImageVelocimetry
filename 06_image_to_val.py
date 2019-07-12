@@ -23,15 +23,16 @@ import matplotlib.cm as cm
 ### FILE 1: Write Data to RBG PNG Files
 ### read them and create a random forest model
 
-T1 = True
-fire1 = False
+T1 = False
+fire1 = True
 
 if T1:
     start_img = 18500
     end_img = 68000
     
-#start_img = 15300
-#end_img = start_img+1000
+if fire1:
+start_img = 15300
+end_img = start_img+12322
 
 org_start = 12300
 #end_img = 68001
@@ -67,7 +68,10 @@ if T1:
 elif fire1:
     org_datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/"
     #img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif/"
-    img_datapath1 = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier03/Optris_ascii/O80_220319_high_P1_RGB/"
+    org_datapath = "/data/FIRE/data/"
+    
+    #img_datapath1 = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier03/Optris_ascii/O80_220319_high_P1_RGB/"
+    img_datapath1 = "/data/FIRE/data/Tier01/O80_220319_high_P1_RGB/"
     # first try:
     #img_datapath2 = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab/"
     
@@ -75,11 +79,11 @@ elif fire1:
     #img_datapath2="/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_NN_cut/"
     
     # virdris images:
-    img_datapath2="/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier04/O80_220319_high_P1_RGB_stab/"
+    #img_datapath2="/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier04/O80_220319_high_P1_RGB_stab/"
+    img_datapath2="/data/FIRE/data/Tier02/O80_220319_high_P1_RGB_stab/"
     
-    
-    datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier02/Optris_ascii/O80_220319_high_P1/"
-    
+    #datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier02/Optris_ascii/O80_220319_high_P1/"
+    datapath = "/data/FIRE/data/Tier01/O80_220319_high_P1/"
     
       
 else:
