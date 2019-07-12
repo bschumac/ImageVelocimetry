@@ -31,8 +31,8 @@ if T1:
     end_img = 68000
     
 if fire1:
-start_img = 15300
-end_img = start_img+12322
+    start_img = 15300
+    end_img = start_img+12322
 
 org_start = 12300
 #end_img = 68001
@@ -220,7 +220,7 @@ final_pred_stab = retrievevalues(datapath_csv_files = datapath, datapath_rbg_fil
 
 
 
-#writeNetCDF(org_datapath,"Tb_stab_20Hz.nc","Tb",final_pred_stab[0])
+writeNetCDF(org_datapath,"Tb_stab_27Hz.nc","Tb",final_pred_stab[0])
 #Tb_stab_pertub_py = create_tst_pertubations_mm(final_pred_stab, 400)
 #writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris_20Hz.nc","Tb_pertub",Tb_stab_pertub_py)
 
