@@ -216,7 +216,7 @@ def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_fil
 
 
 final_pred_stab = retrievevalues(datapath_csv_files = datapath, datapath_rbg_files= img_datapath1, datapath_stab_rgb_files= img_datapath2, 
-                                 start_img = start_img, end_img=end_img, interval=4, image_type1 = ".tif", image_type2 = ".tif")
+                                 start_img = start_img, end_img=end_img, interval=1, image_type1 = ".tif", image_type2 = ".tif")
 
 
 
