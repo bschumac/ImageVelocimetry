@@ -66,7 +66,7 @@ if T1:
     fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
 
 elif fire1:
-    org_datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/"
+    #org_datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/"
     #img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif/"
     org_datapath = "/data/FIRE/data/"
     
@@ -123,7 +123,7 @@ def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_fil
     for i in range(start_img,end_img, interval): 
         
         if counter%100 == 0:
-            print(str(counter)+" of "+str((end_img-start_img)/4))
+            print(str(counter)+" of "+str((end_img-start_img)/interval))
         my_data = np.genfromtxt(datapath_csv_files+fls[i], delimiter=',', skip_header=1)
         my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
         if counter == 0:
