@@ -31,7 +31,7 @@ if T1:
     end_img = 68000
     
 if fire1:
-    start_img = 15300
+    start_img = 12300
     end_img = start_img+12322
 
 org_start = 12300
