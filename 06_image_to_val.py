@@ -146,7 +146,7 @@ def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_fil
     
     MAE_lst = []
     RMSE_lst = []
-    for i in range(0,int(((end_img-start_img)/4)-1)):
+    for i in range(0,int(((end_img-start_img)/interval)-1)):
         
         
 
