@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import copy
 import progressbar
-from TST_fun import *
-file = h5py.File('/home/benjamin/Met_ParametersTST/T0/data/Tb_1Hz.mat','r')
+from functions.TST_fun import *
+from scipy.io import loadmat
+file = loadmat('/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2018/Tb_streamwise_Area_EE1_3.mat')
 
-Tb = file.get('Tb')
+Tb = file['Tb_streamwise_Area_EE1']
 #Tb = np.array(Tb)
 #Tb = np.rot90(Tb,-1, axes=(1,-1))
 #Tb = np.flip(Tb,-1)
@@ -21,7 +22,7 @@ print(Tb_test)
 #Tb_pertub = np.fliplr(Tb_pertub)
 
 
-writeNetCDF("/home/benjamin/Met_ParametersTST/T0/data/", "Tb_1Hz_test.nc", "Tb_test", Tb_test)
+writeNetCDF("/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2018/", "Tb_streamwise_Area_EE1_3.nc", "Tb", Tb)
 
 
 #imgplot = plt.imshow(Tb[1])

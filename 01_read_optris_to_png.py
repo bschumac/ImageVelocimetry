@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 import os
 from shutil import copyfile
 from matplotlib import cm 
-datapath = "/media/benjamin/Seagate Expansion Drive/T1/data/Optris_data_120119/Tier01/Flight03_O80_1616/"
+#datapath = "/media/benjamin/Seagate Expansion Drive/T1/data/Optris_data_120119/Tier01/Flight03_O80_1616/"
 
 # 12300
 # 27000
 
-#datapath="/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier02/Optris_ascii/O80_220319_high_P1/"
+datapath="/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier02/Optris_ascii/O80_220319_high_P1/"
 
 start_img = 18500
 end_img = 68000
@@ -39,7 +39,7 @@ my_dpi = 600
 
 counter = 5875
 for i in range(start_img,end_img, 4):
-        
+        i = 12300
         my_data = genfromtxt(datapath+fls[i], delimiter=',', skip_header=1)
         print("Writing File " +str(i)+".tif from "+str(len(fls)))
         fig = plt.figure(figsize=(382/my_dpi, 288/my_dpi), dpi=my_dpi)
