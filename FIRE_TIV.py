@@ -37,7 +37,7 @@ elif experiment == "T1":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
 elif experiment == "fire1":
-    datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier04/"
+    datapath = "/data/FIRE/data"
     file = h5py.File(datapath+'Tb_stab_27Hz.nc','r')
 
 
@@ -69,8 +69,8 @@ if not os.path.exists(outpath):
 
 plt.imshow(pertub[interval])
 #len(pertub_mm)-interval
-pertub.shape[0]-6
-for i in range(6050, pertub.shape[0]-6):
+#pertub.shape[0]-6
+for i in range(0, pertub.shape[0]-6):
     if i % 10 == 0:
         print(i)
     u, v= window_correlation_tiv(frame_a=pertub_mm[i], frame_b=pertub_mm[i+5], window_size_x=ws, 
@@ -99,7 +99,7 @@ for i in range(6050, pertub.shape[0]-6):
     v= np.reshape(v,((1,v.shape[0],v.shape[1])))
     u= np.reshape(u,((1,u.shape[0],u.shape[1])))
     
-    if i == 6050:
+    if i == 0:
         uas =  copy.copy(u)
         vas =  copy.copy(v)
 
@@ -107,7 +107,8 @@ for i in range(6050, pertub.shape[0]-6):
         uas = np.append(uas,u,0)
         vas = np.append(vas,v,0)
     
-
+writeNetCDF(datapath,"UAS.nc","u",uas)
+writeNetCDF(datapath,"VAS.nc","v",vas)
 
 
 
