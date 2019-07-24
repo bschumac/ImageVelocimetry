@@ -36,7 +36,7 @@ elif experiment == "T1":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
 elif experiment == "fire1":
-    datapath = "/data/FIRE/data"
+    datapath = "/data/FIRE/data/"
     file = h5py.File(datapath+'Tb_stab_27Hz.nc','r')
 
 
