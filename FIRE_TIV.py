@@ -20,7 +20,6 @@ from functions.TST_fun import *
 from scipy import stats
 import datetime
 from math import sqrt
-import openpiv.filters
 import os
 import copy
 from scipy.ndimage.filters import gaussian_filter as gf
