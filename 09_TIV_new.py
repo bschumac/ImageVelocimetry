@@ -19,9 +19,15 @@ from functions.TST_fun import *
 from scipy import stats
 import datetime
 from math import sqrt
-import openpiv.filters
+#import openpiv.filters
 import os
 import copy
+import scipy
+import pathos
+import skimage
+
+
+
 
 
 experiment = "T1"
@@ -33,17 +39,23 @@ if experiment == "T0":
 elif experiment == "T1":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
+    mean_time = 5
+elif experiment == "T120Hz":
+    datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
+    file = h5py.File(datapath+'Tb_stab_pertub20s_py_virdris_20Hz.nc','r')
+    mean_time = 0
 
 
 
 pertub = file.get("Tb_pertub")
 pertub = np.array(pertub)
 
-
+if mean_time != 0:
+    pertub = create_tst_mean(pertub,mean_time) 
 
 method = "greyscale"
 my_dpi = 300
-time_interval = 1
+time_interval = 4
 
 
 ws=16
@@ -51,39 +63,16 @@ ol = 15
 sa = 32
 olsa = 28
 
-outpath = datapath+"tiv/method_"+method+"_WS_"+str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"/"
+outpath = datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"/"
 
 if not os.path.exists(outpath):
     os.makedirs(outpath)
         
 
-pertub[0] = 0
-pertub[6] = 0
-pertub[0,145:154,145:160] = 25
-pertub[0,15:25,15:25] = 25
-pertub[0,215:225,215:225] = 25
-pertub[0,25:55,315:330] = 25
-
-
-pertub[time_interval,145+12:154+12,145+12:160+12] = 25
-pertub[time_interval,15+12:25+12,15+12:25+12] = 25
-pertub[time_interval,215+12:225+12,215+12:225+12] = 25
-pertub[time_interval,25+20:55+20,315+20:330+20] = 25
 
 
 
-#pertub[0,220:235,220:225] = 25
-#pertub[6,220:235,220+15:225+15] = 25
-
-
-
-plt.imshow(pertub[10]-pertub[10+1])
-pertub[0].shape
-#len(pertub)-time_interval)
-
-pertub = create_tst_mean(pertub,20)    
-    
-for i in range(240, 300):
+for i in range(0, len(pertub)-time_interval):
     
     print(i)
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
@@ -93,15 +82,15 @@ for i in range(240, 300):
     u = remove_outliers(u,filter_size=9, sigma=1)
     v = remove_outliers(v, filter_size=9, sigma=1)
     
-    my_dpi=300
+    
     plt.imshow(pertub[i], vmin = -1, vmax=1, cmap = "gist_rainbow_r")
     plt.colorbar()
     plt.quiver(x,y,np.flipud(np.round(u,2)),np.flipud(np.round(v,2)))
-    plt.savefig(outpath+str(i+120)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+    plt.savefig(outpath+'{:04d}'.format(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
     plt.close()
     
     
-    plt.imshow(u)
+    #plt.imshow(u)
     
     v= np.reshape(v,((1,v.shape[0],v.shape[1])))
     u= np.reshape(u,((1,u.shape[0],u.shape[1])))
@@ -123,6 +112,39 @@ writeNetCDF(outpath, 'WS.netcdf', 'ws', calcwindspeed(uas,vas)*0.2)
 
 writeNetCDF(outpath, 'WD.netcdf', 'wd', calcwinddirection(uas,vas))
 
+
+  
+writeNetCDF(outpath, 'Tb_stab_pertub_mean.netcdf', 'Tb_pertub20Hz_means', pertub)
+
+
+
+
+
+#pertub[0] = 0
+#pertub[6] = 0
+#pertub[0,145:154,145:160] = 25
+#pertub[0,15:25,15:25] = 25
+#pertub[0,215:225,215:225] = 25
+#pertub[0,25:55,315:330] = 25
+#
+#
+#pertub[time_interval,145+12:154+12,145+12:160+12] = 25
+#pertub[time_interval,15+12:25+12,15+12:25+12] = 25
+#pertub[time_interval,215+12:225+12,215+12:225+12] = 25
+#pertub[time_interval,25+20:55+20,315+20:330+20] = 25
+
+
+
+#pertub[0,220:235,220:225] = 25
+#pertub[6,220:235,220+15:225+15] = 25
+
+
+
+#plt.imshow(pertub[10]-pertub[10+1])
+#pertub[0].shape
+#len(pertub)-time_interval)
+
+   
 
 
 

@@ -12,6 +12,7 @@ import sklearn.cluster
 import h5py
 from matplotlib import colors, cm
 from functions.TST_fun import tst_kmeans
+import copy
 
 n_clusters = 8
 my_dpi = 100
@@ -109,7 +110,7 @@ def tst_kmeans(dataset,n_clusters = 8, outpath="", my_dpi = 100):
 dataset = tb[1:4,:,:]
 
 
-test_arr = tst_kmeans(tb[0:30,:,:],outpath="/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/kmeans/", my_dpi=300, n_clusters = 8)
+test_arr = tst_kmeans(tb[0:200,:,:],outpath="/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/kmeans/", my_dpi=300, n_clusters = 8)
 
 
 

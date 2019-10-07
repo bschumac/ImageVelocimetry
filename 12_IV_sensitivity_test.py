@@ -1,12 +1,11 @@
-from TST_fun import *
-from openpiv_fun import *
+from functions.openpiv_fun import *
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 from matplotlib import colors, cm
 from joblib import Parallel, delayed
 import multiprocessing
-from TST_fun import *
+from functions.TST_fun import *
 import datetime
 from math import sqrt
 import copy
@@ -40,7 +39,7 @@ result_lst = []
 
 #case = case_lst[2]
 
-
+case = "no_wind"
 
 for case in case_lst:
     case = "no_wind"
@@ -65,7 +64,7 @@ for case in case_lst:
                 window_size = 16
                 overlap = 15
                 search_area_size = 32
-    
+                overlap_search_area = 16
 
 
                 u_model = file.get("u_xy")
@@ -99,14 +98,14 @@ for case in case_lst:
                
 
 
-                frame_a =  windspeed[3542] 
-                frame_b =  windspeed[3543]  
+                frame_a =  windspeed[0] 
+                frame_b =  windspeed[1]  
                 plt.figure()
                 plt.imshow(frame_a)
                 plt.colorbar()
     
-                plt.savefig(outpath+"cross_correlation/abca"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-                plt.close()
+                #plt.savefig(outpath+"cross_correlation/abca"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+                #plt.close()
                 u_model_cut = get_org_data(frame_a=u_model[begin_value_images], search_area_size=search_area_size, overlap=overlap )
                 v_model_cut = get_org_data(frame_a=v_model[begin_value_images], search_area_size=search_area_size, overlap=overlap )
 
@@ -210,8 +209,10 @@ for case in case_lst:
                 # greyscale
                 
                 try:
-                    u1, v1= window_correlation_tiv(frame_a, frame_b, window_size_x=window_size, window_size_y=0, overlap=overlap, 
-                                           search_area_size_x=search_area_size, search_area_size_y=0, corr_method="greyscale")
+                    
+                    
+                    u1, v1= window_correlation_tiv(frame_a, frame_b, window_size_x=window_size, overlap_window=overlap, overlap_search_area=overlap_search_area, corr_method="greyscale", search_area_size_x=search_area_size, 
+                           search_area_size_y=0,  window_size_y=0, mean_analysis = False, std_analysis = False, std_threshold = 10)
                     
                     
                     x1, y1 = get_coordinates( image_size=frame_a.shape, window_size=search_area_size, overlap=overlap )
@@ -232,10 +233,10 @@ for case in case_lst:
                     #plt.gca().set_title("IV")
                     plt.imshow(frame_a,vmin=0,vmax=7)
                     plt.colorbar()
-                    plt.quiver(x1,y1,u1,v1,color="black")
+                    plt.quiver(x1,y1,u1,v1,color="white")
                     #streamplot(U=u1, V=v1*-1, X=x1, Y=y1, topo = frame_a,vmin=0,vmax=8)
                     #plt.show()
-                    plt.savefig(outpath+"greyscale/IMAGEVELOCIMETRY_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=1200,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.savefig(outpath+"greyscale/abcIMAGEVELOCIMETRY_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=1200,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()
                     lw = .3
                     plt.figure()
@@ -243,10 +244,10 @@ for case in case_lst:
                     plt.imshow(frame_a,vmin=0,vmax=7)
                     plt.colorbar()
                     
-                    plt.quiver(x1,y1,np.flipud(u_model_cut),np.flipud(v_model_cut), color='black', linewidth=lw)
+                    plt.quiver(x1,y1,np.flipud(u_model_cut),np.flipud(v_model_cut), color='white', linewidth=lw)
                     #streamplot(U=np.flipud(u_model_cut), V=np.flipud(v_model_cut)*-1, X=x1, Y=y1, topo = frame_a,vmin=0,vmax=8)
                     
-                    plt.savefig(outpath+"greyscale/MODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=1200,bbox_inches='tight',pad_inches = 0,transparent=False)
+                    plt.savefig(outpath+"greyscale/abcMODEL_case_"+str(case)+"_WS_"+str(window_size)+"_OL_"+str(overlap)+"_SA_"+str(search_area_size)+".png",dpi=1200,bbox_inches='tight',pad_inches = 0,transparent=False)
                     plt.close()    
                     
                     
