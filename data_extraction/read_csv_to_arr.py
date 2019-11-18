@@ -29,3 +29,14 @@ import skimage
 
 
 tb_freezer = readcsvtoarr("/home/benjamin/Met_ParametersTST/Lab_freezer_test/Tier1/csv/", end_img = 10000)
+
+
+
+
+
+writeNetCDF("/home/benjamin/Met_ParametersTST/Lab_freezer_test/Tier1/", "freezer_10000.nc", "Tb", tb_freezer)
+
+tb_freezer_pertub = create_tst_pertubations_mm(tb_freezer, 135)
+
+
+writeNetCDF("/home/benjamin/Met_ParametersTST/Lab_freezer_test/Tier1/", "freezer_10000_pertub.nc", "Tb_pertub", tb_freezer_pertub)

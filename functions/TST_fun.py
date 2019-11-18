@@ -33,6 +33,14 @@ def calcwindspeed(v,u):
 
 
 
+def readnetcdftoarr(datapath_to_file, var = 'Tb')
+    file = h5py.File('/home/benjamin/Met_ParametersTST/data/Tb_1Hz.mat','r')
+    
+    arr = file.get(var)
+    nparr = np.array(arr)
+    return(nparr)
+
+
 
 def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
     fls = os.listdir(datapath_csv_files)
@@ -156,43 +164,6 @@ def writeNetCDF(out_dir, out_name, varname, array):
         # close the file.
     ncfile.close()
     print ('*** SUCCESS writing example file'+ file_dest)
-
-#
-#import h5py
-#
-#def write_png_files_from_Tb(datapath,Tb_filename,out_fld_name,my_dpi=100,verbose = True):   
-#    file = h5py.File(datapath+Tb_filename,'r')
-#    Tb = file.get("Tb")
-#    
-#    Tb_MIN = float(np.amin(Tb))
-#    Tb_MAX = float(np.amax(Tb))
-#    Tb_MIN = Tb_MIN - 1
-#    Tb_MAX = Tb_MAX + 1
-#    
-#    
-#    plt.rc('text', usetex=False)
-#    
-#    Tb = np.rot90(Tb,-1, axes=(1,-1))
-#    Tb = np.flip(Tb,-1)
-#    for i in range(0,len(Tb)):
-#        if verbose:
-#            print("Writing File " +str(i)+".png from "+str(len(Tb)))
-#        fig = plt.figure(figsize=(382/my_dpi, 288/my_dpi), dpi=my_dpi)
-#        ax1 = plt.subplot(111)
-#        u_xz = Tb[i]
-#        u_xz_norm = u_xz
-#        #u_xz_norm =  (u_xz - Tb_MIN) / (Tb_MAX-Tb_MIN)
-#        im=ax1.imshow(u_xz_norm,interpolation=None,cmap=cm.jet)
-#        ax1.axis("off")
-#        im.axes.get_xaxis().set_visible(False)
-#        im.axes.get_yaxis().set_visible(False)
-#        plt.subplots_adjust(left=0,right=1,bottom=0,top=1)
-#        plt.savefig(datapath+out_fld_name+str(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-#        plt.close()
-#        
-# 
-
-
 
 
 
