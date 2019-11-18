@@ -3,7 +3,7 @@ import progressbar
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
 import copy
-
+import os
 
 from matplotlib import cm 
 from joblib import Parallel, delayed
@@ -30,6 +30,32 @@ def calcwinddirection(u,v):
 def calcwindspeed(v,u): 
     ws = np.sqrt((u*u)+(v*v))
     return(np.round(ws,2))
+
+
+
+
+def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
+    fls = os.listdir(datapath_csv_files)
+    fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
+    if end_img == 0:
+        end_img = len(fls)-1
+    
+    counter = 0
+    
+    for i in range(start_img,end_img, interval): 
+        
+        if counter%100 == 0:
+            print(str(counter)+" of "+str((end_img-start_img)/interval))
+        my_data = np.genfromtxt(datapath_csv_files+fls[i], delimiter=',', skip_header=1)
+        my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+        if counter == 0:
+            org_data = copy.copy(my_data)
+        else:
+            org_data = np.append(org_data,my_data,0)
+        #org_data[counter] = my_data 
+        counter+=1
+    
+    return(org_data)
 
 
 
