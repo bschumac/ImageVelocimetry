@@ -13,7 +13,7 @@ from scipy.signal import convolve2d
 from numpy import log
 from functions.openpiv_fun import *
 import sklearn.cluster
-
+import h5py
 import matplotlib.patches as patches
 
 
@@ -33,9 +33,8 @@ def calcwindspeed(v,u):
 
 
 
-def readnetcdftoarr(datapath_to_file, var = 'Tb')
-    file = h5py.File('/home/benjamin/Met_ParametersTST/data/Tb_1Hz.mat','r')
-    
+def readnetcdftoarr(datapath_to_file, var = 'Tb'):
+    file = h5py.File(datapath_to_file,'r')
     arr = file.get(var)
     nparr = np.array(arr)
     return(nparr)
