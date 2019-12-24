@@ -81,6 +81,12 @@ def compute_flow_map(u, v, gran = 8):
                     
     return flow_map
 
+
+
+
+
+
+
 def lucas_kanade_np(im1, im2, win=7):
     I_x = np.zeros(im1.shape)
     I_y = np.zeros(im1.shape)
@@ -122,64 +128,6 @@ def lucas_kanade_np(im1, im2, win=7):
     v[win + 1: -1 - win, win + 1: -1 - win] = op_flow_y[:-1, :-1]
     
     return u, v
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-datapath = "/home/benjamin/Met_ParametersTST/PALMS/data/"
-file = h5py.File(datapath+'cbl_surf.nc','r')
-
-
-u_model = file.get("u_xy")
-v_model = file.get("v_xy")
-begin_value_images = 3450
-end_value_images =  3450
-u_model = np.reshape(u_model,(3600,256,512))
-v_model = np.reshape(v_model,(3600,256,512))
-u_subset = u_model[begin_value_images:end_value_images+10]
-v_subset = v_model[begin_value_images:end_value_images+10]
-    
-windspeed = copy.copy(u_subset)
-                
-for l in range(0,len(u_subset)):
-    windspeed[l] = calcwindspeed(u_subset[l],v_subset[l])  
-            
-plt.imshow(windspeed[1])
-optu,optv = lucas_kanade_np(windspeed[1],windspeed[2], win=7)
-
-opt = np.array(opt)
-opt[...,1].shape
-plt.imshow(optv-v_subset[1])
-plt.colorbar()
-plt.imshow(v_subset[1])
-
-plt.imshow(v_subset[1])
-plt.colorbar()
-plt.imshow(u_subset[1])
-
-
-
-
-
-
-
-
 
 
 
