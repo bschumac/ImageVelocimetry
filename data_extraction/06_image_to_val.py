@@ -2,11 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import copy
 from sklearn.model_selection import train_test_split
-from functions.TST_fun import create_tst_pertubations_mm, writeNetCDF, create_tst_mean
-import progressbar
+from functions.TST_fun import create_tst_pertubations_mm, writeNetCDF, create_tst_mean, readnetcdftoarr
 import os
 
-from scipy import ndimage
+
 
 #import cv2
 #from matplotlib import pyplot as plt
@@ -14,7 +13,7 @@ from scipy import ndimage
 #from pandas import DataFrame  
 
 
-import matplotlib.cm as cm
+#import matplotlib.cm as cm
 #import scipy.cluster.vq as scv
 
 
@@ -24,7 +23,11 @@ import matplotlib.cm as cm
 ### read them and create a random forest model
 
 T1 = False
-fire1 = True
+fire1 = False
+pre_fire = False
+pre_fire_1Hz = True
+
+
 
 if T1:
     start_img = 18500
@@ -34,12 +37,21 @@ if fire1:
     start_img = 12300
     end_img = start_img+12322
 
-org_start = 12300
+if pre_fire:
+    start_img = 1
+    end_img = 5500
+
+if pre_fire_1Hz:
+    start_img = 1
+    end_img = 204
+
+#org_start = 12300
 #end_img = 68001
 
 
 
 if T1:
+    org_data_netcdf = False
     #org_datapath = "/home/benjamin/Met_ParametersTST/T1/"
     #img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif/"
     #img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif_viridis/"
@@ -66,6 +78,7 @@ if T1:
     fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
 
 elif fire1:
+    org_data_netcdf = False
     #org_datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/"
     #img_datapath1 = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif/"
     org_datapath = "/data/FIRE/data/"
@@ -84,7 +97,38 @@ elif fire1:
     
     #datapath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2019/Tier02/Optris_ascii/O80_220319_high_P1/"
     datapath = "/data/FIRE/data/Tier01/O80_220319_high_P1/"
+
+
+elif pre_fire:
+    org_data_netcdf = True
     
+    org_datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
+    
+    # org virdris images:
+    img_datapath1 = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris/"
+   
+    # stab virdris images:
+    
+    img_datapath2="/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_stab/"
+    # org data:
+    datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Tb_org_27Hz.nc"
+    
+
+
+elif pre_fire_1Hz:
+    org_data_netcdf = True
+    
+    org_datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
+    
+    # org virdris images:
+    img_datapath1 = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_1Hz/"
+   
+    # stab virdris images:
+    
+    img_datapath2="/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_1Hz_stab/"
+    # org data:
+    datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Tb_org_1Hz.nc"
+        
       
 else:
     image_type1 = ".tif"
@@ -107,8 +151,6 @@ else:
 def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_files, end_img, start_img = 0, interval=1, image_type1 = ".tif", 
                    image_type2 = ".tif", method="ExtraRegressor"):
 
-    fls = os.listdir(datapath_csv_files)
-    fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
     
     
     
@@ -119,20 +161,28 @@ def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_fil
     
     
     print("Reading original data to RAM...")
-    counter = 0
-    for i in range(start_img,end_img, interval): 
+    
+    if org_data_netcdf:
+        org_data = readnetcdftoarr(datapath_csv_files)
+    
+    else:    
         
-        if counter%100 == 0:
-            print(str(counter)+" of "+str((end_img-start_img)/interval))
-        my_data = np.genfromtxt(datapath_csv_files+fls[i], delimiter=',', skip_header=1)
-        my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
-        if counter == 0:
-            org_data = copy.copy(my_data)
-        else:
-            org_data = np.append(org_data,my_data,0)
-        #org_data[counter] = my_data 
-        counter+=1
-    print("...finished!")
+        fls = os.listdir(datapath_csv_files)
+        fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
+        counter = 0
+        for i in range(start_img,end_img, interval): 
+            
+            if counter%100 == 0:
+                print(str(counter)+" of "+str((end_img-start_img)/interval))
+            my_data = np.genfromtxt(datapath_csv_files+fls[i], delimiter=',', skip_header=1)
+            my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+            if counter == 0:
+                org_data = copy.copy(my_data)
+            else:
+                org_data = np.append(org_data,my_data,0)
+            #org_data[counter] = my_data 
+            counter+=1
+        print("...finished!")
     
     
     print("Start modelling...")
@@ -147,11 +197,8 @@ def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_fil
     MAE_lst = []
     RMSE_lst = []
     for i in range(0,int(((end_img-start_img)/interval)-1)):
-        
-        
-
         print(i)
-        image_file=datapath_rbg_files+str(i)+image_type1
+        image_file=datapath_rbg_files+str(i+1)+image_type1
         org_data_rgb=plt.imread(image_file)
         org_data_rgb=org_data_rgb[:,:,0:3]
         #org_data_rgb=org_data_rgb[50:200,50:250,0:3]
@@ -163,7 +210,7 @@ def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_fil
         stab_data_rgb=plt.imread(image_file)
         stab_data_rgb=stab_data_rgb[:,:,0:3]
         #stab_data_rgb = stab_data_rgb*255
-         
+        #plt.imshow(stab_data_rgb)
         org_data_subset = org_data[i]#[50:200,50:250]
         org_data_labels = org_data_subset.reshape(org_data_subset.shape[0]*org_data_subset.shape[1])
         org_data_rgb_features = org_data_rgb.reshape((org_data_rgb.shape[0]*org_data_rgb.shape[1],org_data_rgb.shape[2]))
@@ -234,7 +281,9 @@ with open(org_datapath+'RMSE_lst.txt', 'w') as f:
         f.write("%s\n" % item)
 
 
+np.mean(final_pred_stab[1])
 
+np.mean(final_pred_stab[2])
 
 
 

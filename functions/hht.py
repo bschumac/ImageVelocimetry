@@ -6,7 +6,7 @@ Created on Fri Aug 16 08:45:40 2019
 @author: benjamin
 """
 
-from netCDF4 import Dataset
+
 import matplotlib.pyplot as plt
 import numpy as np
 import math
@@ -174,7 +174,7 @@ def FAhilbert(imfs, dt):
     return np.asarray(f).T, np.asarray(a).T
 
 
-def hht(data, time, outpath, figname, freqsol=33, timesol=50, my_dpi=600):
+def hht(data, time, outpath, figname, freqsol=33, freqmax=12, timesol=50,  rec_freq = 1, my_dpi=600, plot_hht = False):
     """
     hht function for the Hilbert Huang Transform spectrum
     Parameters
@@ -210,8 +210,8 @@ def hht(data, time, outpath, figname, freqsol=33, timesol=50, my_dpi=600):
     imfs = eemd.eemd(data)
     freq, amp = FAhilbert(imfs, dt)
 
-    #     fw0 = np.min(np.min(freq)) # maximum frequency
-    #     fw1 = np.max(np.max(freq)) # maximum frequency
+    #fw0 = np.min(np.min(freq)) # maximum frequency
+    #fw1 = np.max(np.max(freq)) # maximum frequency
 
     #     if fw0 <= 0:
     #         fw0 = np.min(np.min(freq[freq > 0])) # only consider positive frequency
@@ -219,7 +219,7 @@ def hht(data, time, outpath, figname, freqsol=33, timesol=50, my_dpi=600):
     #     fw = fw1-fw0
     tw = t1 - t0
 
-    bins = np.linspace(0, 12, freqsol)  # np.logspace(0, 10, freqsol, base=2.0)
+    bins = np.linspace(0, freqmax, freqsol)  # np.logspace(0, 10, freqsol, base=2.0)
     p = np.digitize(freq, 2 ** bins)
     t = np.ceil((timesol - 1) * (time - t0) / tw)
     t = t.astype(int)
@@ -229,27 +229,34 @@ def hht(data, time, outpath, figname, freqsol=33, timesol=50, my_dpi=600):
         for j in range(imfs.shape[0] - 1):
             if p[i, j] >= 0 and p[i, j] < freqsol:
                 hilbert_spectrum[t[i], p[i, j]] += amp[i, j]
-
-    hilbert_spectrum = abs(hilbert_spectrum)
-    fig1 = plt.figure(figsize=(5, 5))
-    plot_imfs(data, imfs, time_samples=time, fig=fig1)
-    plt.savefig(outpath+figname+"EMD.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-    fig2 = plt.figure(figsize=(5, 5))
-    plot_frequency(data, freq.T, time_samples=time, fig=fig2)
     
-    plt.savefig(outpath+figname+"fq_IMFs.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-    fig0 = plt.figure(figsize=(5, 5))
-    ax = plt.gca()
-    c = ax.contourf(np.linspace(t0, t1, timesol), bins,
-                    hilbert_spectrum.T)  # , colors=('whites','lategray','navy','darkgreen','gold','red')
-    ax.invert_yaxis()
-    ax.set_yticks(np.linspace(1, 11, 11))
-    Yticks = [float(math.pow(2, p)) for p in np.linspace(1, 11, 11)]  # make 2^periods
-    ax.set_yticklabels(Yticks)
-    ax.set_xlabel('Time', fontsize=8)
-    ax.set_ylabel('Period', fontsize=8)
-    position = fig0.add_axes([0.2, -0., 0.6, 0.01])
-    cbar = plt.colorbar(c, cax=position, orientation='horizontal')
-    cbar.set_label('Power')
-    plt.savefig(outpath+figname+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
-    plt.show()
+    hilbert_spectrum = abs(hilbert_spectrum)
+    #plt.imshow(hilbert_spectrum.T)
+    if plot_hht:
+        fig1 = plt.figure(figsize=(5, 5))
+        plot_imfs(data, imfs, time_samples=time, fig=fig1)
+        plt.savefig(outpath+figname+"EMD.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+        fig2 = plt.figure(figsize=(5, 5))
+        plot_frequency(data, freq.T, time_samples=time, fig=fig2)
+        
+        plt.savefig(outpath+figname+"fq_IMFs.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+        fig0 = plt.figure(figsize=(5, 5))
+        ax = plt.gca()
+        c = ax.contourf(np.linspace(t0, t1, timesol), bins,
+                        hilbert_spectrum.T)  # , colors=('whites','lategray','navy','darkgreen','gold','red')
+        #ax.invert_yaxis()
+        #ax.set_yticks(np.linspace(1, 11, 11))
+        #Yticks = [float(math.pow(2, p)) for p in np.linspace(1, 11, 11)]  # make 2^periods
+        #ax.set_yticklabels(Yticks)
+        ax.set_xlabel('Time', fontsize=8)
+        ax.set_ylabel('Period in sec', fontsize=8)
+        position = fig0.add_axes([0.2, -0., 0.6, 0.01])
+        cbar = plt.colorbar(c, cax=position, orientation='horizontal')
+        cbar.set_label('Power')
+        plt.savefig(outpath+figname+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+        plt.show()
+    
+   
+    sum_period = np.sum(hilbert_spectrum, 0)
+    return((np.argmax(sum_period)+1)/rec_freq)
+    
