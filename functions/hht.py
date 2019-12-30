@@ -258,5 +258,13 @@ def hht(data, time, outpath, figname, freqsol=33, freqmax=12, timesol=50,  rec_f
     
    
     sum_period = np.sum(hilbert_spectrum, 0)
-    return((np.argmax(sum_period)+1)/rec_freq)
+    # maybe return total power as well?
+    
+    out_arr = np.zeros((2,3))
+    sum_sort = sum_period.argsort()[-3:][::-1] #+1 cause np starts counting at 0
+    
+    out_arr[0] = sum_sort+1
+    out_arr[1] = sum_period[sum_sort]
+            
+    return(out_arr)
     

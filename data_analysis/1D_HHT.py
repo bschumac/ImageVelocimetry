@@ -34,6 +34,31 @@ pertub = np.array(pertub)
 
 
 def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname = "hht_fig"):
+    """
+    Compute the interval setting for the TIV. This is based on the hilbert-huang transform assuming non-stationarity of the given dataset.
+    The function returns the most powerful period (frequency = 1/period) 
+    
+    Parameters
+    ----------
+    data: 3d np.ndarray
+        a three dimensional array which contains the brightness temperature (perturbation).
+    rec_freq: int (default 1)
+        the fps which was used to record the imagery 
+    plot_hht: boolean (default False)
+        Boolean flag to plot  the results for review
+    outpath: string (default "/")
+        The outpath for the plots - only the last plot of 10 plots is saved in this directory
+        Set to a proper directory when used with Boolean flag.
+    figname: string (default "hht_fig")
+        The output figure name.
+    Returns
+    -------
+    mode(interval_lst) : int
+        The found most occuring and powerful period
+    
+    """
+    
+    
     
     interval_lst = []
         

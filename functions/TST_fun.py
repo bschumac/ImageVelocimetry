@@ -12,9 +12,12 @@ from skimage.util.dtype import dtype_range
 from scipy.signal import convolve2d
 from numpy import log
 from functions.openpiv_fun import *
-import sklearn.cluster
 import h5py
-import matplotlib.patches as patches
+from statistics import mode 
+from collections import Counter
+from functions.hht import hht
+import copy
+
 
 
 
@@ -95,6 +98,97 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
     return(resultarr)
 
 
+
+def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname = "hht_fig"):
+    """
+    Compute the interval setting for the TIV. This is based on the hilbert-huang transform assuming non-stationarity of the given dataset.
+    The function returns the most powerful period (frequency = 1/period) 
+    
+    Parameters
+    ----------
+    data: 3d np.ndarray
+        a three dimensional array which contains the brightness temperature (perturbation).
+    rec_freq: int (default 1)
+        the fps which was used to record the imagery 
+    plot_hht: boolean (default False)
+        Boolean flag to plot  the results for review
+    outpath: string (default "/")
+        The outpath for the plots - only the last plot of 10 plots is saved in this directory
+        Set to a proper directory when used with Boolean flag.
+    figname: string (default "hht_fig")
+        The output figure name.
+    Returns
+    -------
+    [mode(interval_lst),interval_lst] : list
+        The found most occuring and powerful period, and the list which was used to calculate this
+    
+    """
+    
+    
+    
+    
+        
+    for i in range(0,11):
+        rand_x = np.round(np.random.rand(),2)
+        rand_y = np.round(np.random.rand(),2)
+        
+        x = np.round(100+(225-100)*rand_x)
+        y = np.round(100+((225-100)*rand_y))
+        
+        if plot_hht:
+            print(x)
+            print(y)
+        #print(data.shape)
+        pixel = data[:,int(x),int(y)]
+        #print(data.shape)
+        
+        act_interval = hht(data=pixel, time=np.arange(0, len(pixel)), outpath=outpath, 
+                           figname=figname, freqsol=12, freqmax=12 ,timesol=int(len(data)/rec_freq), rec_freq = rec_freq, plot_hht = plot_hht)
+        
+        
+        if i == 0:
+            interval_lst = copy.copy(act_interval)
+        else:
+            interval_lst = np.append(interval_lst,act_interval,0)
+    try:
+        first_most = mode(interval_lst[0::2,:][:,0])
+    except:
+        d_same_count_intervals = Counter(interval_lst[0::2,:][:,1])
+        d_same_count_occ = Counter(d_same_count_intervals.values())
+        for value in d_same_count_occ.values():
+            if value == 2:
+                first_most = np.mean(list(d_same_count_intervals.keys())[0:2])
+            if value == 3:
+                first_most = np.mean(list(d_same_count_intervals.keys())[0:3])
+            if value == 4:
+                first_most = np.mean(list(d_same_count_intervals.keys())[0:4])
+            if value == 5:
+                first_most = np.mean(list(d_same_count_intervals.keys())[0:5])   
+    try:
+        second_most = mode(interval_lst[0::2,:][:,1]) 
+    except:
+        sec_most_lst = interval_lst[0::2,:][:,1]
+        d_same_count_intervals = Counter(interval_lst[0::2,:][:,1])
+        # 
+        try:
+            if first_most in d_same_count_intervals.keys():
+                sec_most_lst = np.delete(sec_most_lst, np.where(sec_most_lst == first_most))       
+                second_most = mode(sec_most_lst)
+            else:
+                raise(ValueError())
+        except:
+            d_same_count_occ = Counter(d_same_count_intervals.values())
+            for value in d_same_count_occ.values():
+                if value == 2:
+                    second_most = np.mean(list(d_same_count_intervals.keys())[0:2])
+                if value == 3:
+                    second_most = np.mean(list(d_same_count_intervals.keys())[0:3])
+                if value == 4:
+                    second_most = np.mean(list(d_same_count_intervals.keys())[0:4])
+                if value == 5:
+                    second_most = np.mean(list(d_same_count_intervals.keys())[0:5])            
+ 
+    return([first_most, second_most, interval_lst])
 
 
 
