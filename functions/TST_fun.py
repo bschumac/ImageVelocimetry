@@ -69,6 +69,17 @@ def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
 
 
 
+def create_tst_subsample_mean(array, size=9):
+    cut_to = int(np.floor(len(array)/size)*size)
+    array = array[0:cut_to]
+    split_size = len(array)/size
+    a_split = np.array_split(array,split_size)
+    a_split_avg = np.array([np.mean(arr,0) for arr in a_split])
+    return(a_split_avg)
+    
+
+
+
 
 def create_tst_pertubations_mm(array, moving_mean_size = 60):
     # creates a moving mean around each layer in array   
@@ -99,7 +110,7 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
 
 
 
-def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname = "hht_fig"):
+def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname = "hht_fig", FUN="all"):
     """
     Compute the interval setting for the TIV. This is based on the hilbert-huang transform assuming non-stationarity of the given dataset.
     The function returns the most powerful period (frequency = 1/period) 
@@ -142,14 +153,16 @@ def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname
         pixel = data[:,int(x),int(y)]
         #print(data.shape)
         
-        act_interval = hht(data=pixel, time=np.arange(0, len(pixel)), outpath=outpath, 
-                           figname=figname, freqsol=12, freqmax=12 ,timesol=int(len(data)/rec_freq), rec_freq = rec_freq, plot_hht = plot_hht)
+        act_interval = hht(pixel=pixel, time=np.arange(0, len(pixel)), outpath=outpath, 
+                           figname=figname, freqsol=12, freqmax=12 ,timesol=int(len(data)/rec_freq), rec_freq = rec_freq, plot_hht = plot_hht,
+                           FUN = FUN)
         
         
         if i == 0:
             interval_lst = copy.copy(act_interval)
         else:
             interval_lst = np.append(interval_lst,act_interval,0)
+    
     try:
         first_most = mode(interval_lst[0::2,:][:,0])
     except:

@@ -30,7 +30,7 @@ import skimage
 
 
 
-experiment = "T1"
+experiment = "pre_fire_1Hz"
 
 
 if experiment == "T0":
@@ -44,18 +44,28 @@ elif experiment == "T120Hz":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub20s_py_virdris_20Hz.nc','r')
     mean_time = 0
+elif experiment == "pre_fire_1Hz":
+    datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
+    file = h5py.File(datapath+'Tb_stab_27Hz.nc')
+    mean_time = 0
 
 
-
-pertub = file.get("Tb_pertub")
+pertub = file.get("Tb")
 pertub = np.array(pertub)
+
+pertub = create_tst_subsample_mean(pertub)
+
+pertub = create_tst_pertubations_mm(pertub,120)
+
+
+
 
 if mean_time != 0:
     pertub = create_tst_mean(pertub,mean_time) 
 
 method = "greyscale"
 my_dpi = 300
-time_interval = 4
+time_interval = 3
 
 
 ws=16
@@ -72,11 +82,11 @@ if not os.path.exists(outpath):
 
 
 
-for i in range(0, len(pertub)-time_interval):
+for i in range(120, len(pertub)-time_interval):
     
     print(i)
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
-                                 search_area_size_x=sa, corr_method=method, mean_analysis = True, std_analysis = False, std_threshold = 1)
+                                 search_area_size_x=sa, corr_method=method, mean_analysis = False, std_analysis = False, std_threshold = 1)
     x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
     
     u = remove_outliers(u,filter_size=9, sigma=1)

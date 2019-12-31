@@ -1,25 +1,23 @@
-import h5py
+
 import matplotlib.pyplot as plt
-import numpy as np
-import copy
-import progressbar
-from TST_fun import *
-from netCDF4 import Dataset
-file = h5py.File('/home/benjamin/Met_ParametersTST/data/Tb_1Hz.mat','r')
+from functions.TST_fun import readnetcdftoarr, create_tst_pertubations_mm, writeNetCDF, create_tst_mean
 
-Tb = file.get('Tb')
-Tb = np.array(Tb)
-Tb = np.rot90(Tb,-1, axes=(1,-1))
-Tb = np.flip(Tb,-1)
 
+datapath= "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
+
+Tb = readnetcdftoarr(datapath+"Tb_stab_1Hz.nc")
+
+
+Tb = create_tst_mean(Tb, moving_mean_size = 4)
 
 # create_tst_pertubations has moving_mean_size setting as well standart is 
 Tb_pertub = create_tst_pertubations_mm(Tb, moving_mean_size = 60)
-#print(np.shape(Tb_pertub))
-Tb_pertub = np.fliplr(Tb_pertub)
+print(np.shape(Tb_pertub))
+#Tb_pertub = np.fliplr(Tb_pertub)
 
 
-writeNetCDF("/home/benjamin/Met_ParametersTST/data", "Tb_pertub_py.nc", "Tb_pertub", Tb_pertub)
+
+writeNetCDF(datapath, "Tb_1Hz_pertub_60s_py.nc", "Tb_pertub", Tb_pertub)
 
 
 imgplot = plt.imshow(Tb_pertub[1])

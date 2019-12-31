@@ -148,7 +148,6 @@ def hilb(s, unwrap=False):
     amp = np.abs(H)
     phase = np.arctan2(H.imag, H.real)
     if unwrap: phase = np.unwrap(phase)
-
     return amp, phase
 
 
@@ -163,9 +162,9 @@ def FAhilbert(imfs, dt):
     for i in range(n_imfs - 1):
         # upper, lower = pyhht.utils.get_envelops(imfs[i, :])
         inst_imf = imfs[i, :]  # /upper
-        inst_amp, phase = hilb(inst_imf, unwrap=True)
-        inst_freq = (2 * math.pi) / np.diff(phase)  #
-
+        inst_amp, phase = hilb(inst_imf, unwrap=False)
+        inst_freq = np.diff(phase)/dt/(2 * math.pi)   #
+        #plt.plot(inst_amp)
         inst_freq = np.insert(inst_freq, len(inst_freq), inst_freq[-1])
         inst_amp = np.insert(inst_amp, len(inst_amp), inst_amp[-1])
 
@@ -174,7 +173,7 @@ def FAhilbert(imfs, dt):
     return np.asarray(f).T, np.asarray(a).T
 
 
-def hht(data, time, outpath, figname, freqsol=33, freqmax=12, timesol=50,  rec_freq = 1, my_dpi=600, plot_hht = False):
+def hht(pixel, time, outpath, figname, freqsol=33, freqmax=27, timesol=50,  rec_freq = 1, my_dpi=600, plot_hht = False, FUN = "all"):
     """
     hht function for the Hilbert Huang Transform spectrum
     Parameters
@@ -205,9 +204,9 @@ def hht(data, time, outpath, figname, freqsol=33, freqmax=12, timesol=50,  rec_f
     t0 = time[0]
     t1 = time[-1]
     dt = (t1 - t0) / (len(time) - 1)
-
+    dt= 1/27
     eemd = EEMD()
-    imfs = eemd.eemd(data)
+    imfs = eemd.eemd(pixel)
     freq, amp = FAhilbert(imfs, dt)
 
     #fw0 = np.min(np.min(freq)) # maximum frequency
@@ -234,19 +233,19 @@ def hht(data, time, outpath, figname, freqsol=33, freqmax=12, timesol=50,  rec_f
     #plt.imshow(hilbert_spectrum.T)
     if plot_hht:
         fig1 = plt.figure(figsize=(5, 5))
-        plot_imfs(data, imfs, time_samples=time, fig=fig1)
+        plot_imfs(pixel, imfs, time_samples=time, fig=fig1)
         plt.savefig(outpath+figname+"EMD.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
         fig2 = plt.figure(figsize=(5, 5))
-        plot_frequency(data, freq.T, time_samples=time, fig=fig2)
+        plot_frequency(pixel, freq.T, time_samples=time, fig=fig2)
         
         plt.savefig(outpath+figname+"fq_IMFs.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
         fig0 = plt.figure(figsize=(5, 5))
         ax = plt.gca()
         c = ax.contourf(np.linspace(t0, t1, timesol), bins,
                         hilbert_spectrum.T)  # , colors=('whites','lategray','navy','darkgreen','gold','red')
-        #ax.invert_yaxis()
-        #ax.set_yticks(np.linspace(1, 11, 11))
-        #Yticks = [float(math.pow(2, p)) for p in np.linspace(1, 11, 11)]  # make 2^periods
+        ax.invert_yaxis()
+        ax.set_yticks(np.linspace(1, 11, 11))
+        Yticks = [float(math.pow(2, p)) for p in np.linspace(1, 11, 11)]  # make 2^periods
         #ax.set_yticklabels(Yticks)
         ax.set_xlabel('Time', fontsize=8)
         ax.set_ylabel('Period in sec', fontsize=8)
@@ -256,14 +255,35 @@ def hht(data, time, outpath, figname, freqsol=33, freqmax=12, timesol=50,  rec_f
         plt.savefig(outpath+figname+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
         plt.show()
     
-   
-    sum_period = np.sum(hilbert_spectrum, 0)
-    # maybe return total power as well?
-    
     out_arr = np.zeros((2,3))
-    sum_sort = sum_period.argsort()[-3:][::-1] #+1 cause np starts counting at 0
+    if FUN == "mean":
+         mean_period = np.mean(hilbert_spectrum, 0)
+         sum_sort = mean_period.argsort()[-3:][::-1] #+1 cause np starts counting at 0
+    elif FUN == "sum":    
+         sum_period = np.sum(hilbert_spectrum, 0)
+         sum_sort = sum_period.argsort()[-3:][::-1]
+    elif FUN == "constant":
+         nonzero_period = np.count_nonzero(hilbert_spectrum, 0)
+         sum_sort = nonzero_period.argsort()[-3:][::-1] 
+    elif FUN == "all":
+         
+         sum_period = np.sum(hilbert_spectrum, 0)
+         sum_sort = sum_period.argsort()[-3:][::-1]
+         
+         mean_period = np.mean(hilbert_spectrum, 0)
+         mean_sort = mean_period.argsort()[-3:][::-1]
+         
+         nonzero_period = np.count_nonzero(hilbert_spectrum, 0)
+         nonzero_sort = nonzero_period.argsort()[-3:][::-1] 
+         
+         sum_sort = np.intersect1d(np.intersect1d(sum_sort, mean_sort),nonzero_sort)
+         if sum_sort.shape[0] < 2:
+             sum_sort = np.append(sum_sort,np.array((-2,-2)))
+         if sum_sort.shape[0] < 3:
+             sum_sort = np.append(sum_sort,np.array((-2)))    
+           
     
-    out_arr[0] = sum_sort+1
+    out_arr[0] = sum_sort+1 #+1 cause np starts counting at 0
     out_arr[1] = sum_period[sum_sort]
             
     return(out_arr)

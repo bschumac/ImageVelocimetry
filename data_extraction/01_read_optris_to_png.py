@@ -31,7 +31,7 @@ end_img = 15500
 
 
 
-outpath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_YlGnBu/"
+outpath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_1Hz/"
 outpath_netcdf = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/"
 
 if not os.path.exists(outpath):
@@ -47,7 +47,7 @@ my_dpi = 600
 
 
 counter = 1
-for i in range(start_img,end_img, 1):
+for i in range(start_img,end_img, 27):
         my_data = genfromtxt(datapath+fls[i], delimiter=',', skip_header=1)
         print("Writing File " +str(i)+".tif from "+str(len(fls)))
         fig = plt.figure(figsize=(382/my_dpi, 288/my_dpi), dpi=my_dpi)
@@ -67,4 +67,4 @@ for i in range(start_img,end_img, 1):
             final_tb = np.append(final_tb,my_data,0)
         counter +=1
 
-writeNetCDF(outpath_netcdf,"Tb_org_27Hz.nc","Tb",final_tb)
+writeNetCDF(outpath_netcdf,"Tb_org_1Hz.nc","Tb",final_tb)
