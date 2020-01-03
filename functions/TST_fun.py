@@ -78,6 +78,10 @@ def create_tst_subsample_mean(array, size=9):
     return(a_split_avg)
     
 
+def create_tst_subsample(array, size = 9):
+    return(array[1::size])
+    
+
 
 
 
@@ -112,7 +116,9 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
 
 def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname = "hht_fig", FUN="all"):
     """
-    Compute the interval setting for the TIV. This is based on the hilbert-huang transform assuming non-stationarity of the given dataset.
+    Compute the interval setting for the TIV. 
+    Basically a wrapper function for the hht function
+    This is based on the hilbert-huang transform assuming non-stationarity of the given dataset.
     The function returns the most powerful period (frequency = 1/period) 
     
     Parameters
@@ -154,8 +160,8 @@ def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname
         #print(data.shape)
         
         act_interval = hht(pixel=pixel, time=np.arange(0, len(pixel)), outpath=outpath, 
-                           figname=figname, freqsol=12, freqmax=12 ,timesol=int(len(data)/rec_freq), rec_freq = rec_freq, plot_hht = plot_hht,
-                           FUN = FUN)
+                           figname=figname, freqsol=12, freqmax=12 ,timesol=int(len(data)/rec_freq), 
+                           rec_freq = rec_freq, plot_hht = plot_hht, FUN = FUN)
         
         
         if i == 0:

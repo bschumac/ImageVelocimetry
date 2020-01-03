@@ -10,7 +10,7 @@ Created on Fri Aug 16 07:34:20 2019
 from functions.TST_fun import find_interval, create_tst_mean
 import h5py
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 
 #ToDo:
@@ -33,5 +33,17 @@ pertub = file.get("Tb")
 pertub = np.array(pertub)
 
 
+test_data= readnetcdftoarr("/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/Tb_3Hz_pertub_60s_py_mean3s.nc", "Tb_pertub")
 
-ret_lst = find_interval(data= pertub, plot_hht=False, outpath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/Test/")
+pixel = test_data[:,225,225]
+len(pixel)
+plt.plot(pixel)
+
+
+with open(datapath+'pixel_3Hz_smooth.txt', 'w') as f:
+    for item in pixel:
+        f.write("%s\n" % item)
+
+
+
+ret_lst = find_interval(data = pertub,rec_freq = 27, plot_hht=True, outpath="/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/Test/" )

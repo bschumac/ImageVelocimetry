@@ -44,41 +44,54 @@ elif experiment == "T120Hz":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub20s_py_virdris_20Hz.nc','r')
     mean_time = 0
-elif experiment == "pre_fire_1Hz":
+elif experiment == "pre_fire_27Hz":
     datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
     file = h5py.File(datapath+'Tb_stab_27Hz.nc')
     mean_time = 0
 
 
-pertub = file.get("Tb")
-pertub = np.array(pertub)
-
-pertub = create_tst_subsample_mean(pertub)
-
-pertub = create_tst_pertubations_mm(pertub,120)
+tb = file.get("Tb")
+tb = np.array(tb)
 
 
+#tb = create_tst_subsample(tb, 9)
 
+#tb = create_tst_subsample_mean(tb, 27)
 
 if mean_time != 0:
-    pertub = create_tst_mean(pertub,mean_time) 
+    tb = create_tst_mean(tb,mean_time) 
+
+
+pertub = create_tst_pertubations_mm(tb,60)
+
+
+
+
+#writeNetCDF(datapath, "Tb_1Hz_pertub_60s_py_mean3s.nc", "Tb_pertub", pertub)
+
+
+
+
 
 method = "greyscale"
 my_dpi = 300
-time_interval = 3
+time_interval = 5
 
 
 ws=16
 ol = 15
 sa = 32
 olsa = 28
+mean_a = False
+std_a = True
 
-outpath = datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"/"
+outpath = (datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
+str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"_mean_a_"+str(mean_a)+"_std_a"+str(std_a)+"/")
 
 if not os.path.exists(outpath):
     os.makedirs(outpath)
         
-
+print(outpath)
 
 
 
@@ -86,7 +99,7 @@ for i in range(120, len(pertub)-time_interval):
     
     print(i)
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
-                                 search_area_size_x=sa, corr_method=method, mean_analysis = False, std_analysis = False, std_threshold = 1)
+                                 search_area_size_x=sa, corr_method=method, mean_analysis = mean_a, std_analysis = std_a, std_threshold = 10)
     x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
     
     u = remove_outliers(u,filter_size=9, sigma=1)
@@ -105,7 +118,7 @@ for i in range(120, len(pertub)-time_interval):
     v= np.reshape(v,((1,v.shape[0],v.shape[1])))
     u= np.reshape(u,((1,u.shape[0],u.shape[1])))
 
-    if i == 0:
+    if i == 120:
         uas =  copy.copy(u)
         vas =  copy.copy(v)
 
