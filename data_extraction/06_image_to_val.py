@@ -39,7 +39,9 @@ if fire1:
 
 if pre_fire:
     start_img = 1
-    end_img = 5500
+    end_img = 4689
+    # or non-cut
+    #end_img = 5500
 
 if pre_fire_1Hz:
     start_img = 1
@@ -121,13 +123,13 @@ elif pre_fire_1Hz:
     org_datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
     
     # org virdris images:
-    img_datapath1 = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_1Hz/"
+    img_datapath1 = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_27Hz_cut/"
    
     # stab virdris images:
     
-    img_datapath2="/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_1Hz_stab/"
+    img_datapath2="/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_virdris_27Hz_cut_stab/"
     # org data:
-    datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Tb_org_1Hz.nc"
+    datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Tb_org_cut_27Hz.nc"
         
       
 else:
@@ -267,7 +269,7 @@ final_pred_stab = retrievevalues(datapath_csv_files = datapath, datapath_rbg_fil
 
 
 
-writeNetCDF(org_datapath,"Tb_stab_1Hz.nc","Tb",final_pred_stab[0])
+writeNetCDF(org_datapath,"Tb_stab_cut_27Hz_noscale_norot.nc","Tb",final_pred_stab)
 #Tb_stab_pertub_py = create_tst_pertubations_mm(final_pred_stab, 400)
 #writeNetCDF(org_datapath,"Tb_stab_pertub_py_virdris_20Hz.nc","Tb_pertub",Tb_stab_pertub_py)
 

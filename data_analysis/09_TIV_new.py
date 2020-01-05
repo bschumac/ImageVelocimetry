@@ -46,15 +46,15 @@ elif experiment == "T120Hz":
     mean_time = 0
 elif experiment == "pre_fire_27Hz":
     datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
-    file = h5py.File(datapath+'Tb_stab_27Hz.nc')
-    mean_time = 0
+    file = h5py.File(datapath+'Tb_stab_cut_27Hz_noscale_norot.nc')
+    mean_time = 3
 
 
 tb = file.get("Tb")
 tb = np.array(tb)
 
 
-#tb = create_tst_subsample(tb, 9)
+tb = create_tst_subsample(tb, 9)
 
 #tb = create_tst_subsample_mean(tb, 27)
 
@@ -62,12 +62,12 @@ if mean_time != 0:
     tb = create_tst_mean(tb,mean_time) 
 
 
-pertub = create_tst_pertubations_mm(tb,60)
+pertub = create_tst_pertubations_mm(tb,180)
 
 
 
 
-#writeNetCDF(datapath, "Tb_1Hz_pertub_60s_py_mean3s.nc", "Tb_pertub", pertub)
+#writeNetCDF(datapath, "Tb_3Hz_pertub_60s_py_cut_norot.nc", "Tb_pertub", pertub)
 
 
 
@@ -75,7 +75,7 @@ pertub = create_tst_pertubations_mm(tb,60)
 
 method = "greyscale"
 my_dpi = 300
-time_interval = 5
+time_interval = 1
 
 
 ws=16
@@ -83,7 +83,7 @@ ol = 15
 sa = 32
 olsa = 28
 mean_a = False
-std_a = True
+std_a = False
 
 outpath = (datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
 str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"_mean_a_"+str(mean_a)+"_std_a"+str(std_a)+"/")
@@ -95,7 +95,7 @@ print(outpath)
 
 
 
-for i in range(120, len(pertub)-time_interval):
+for i in range(180, len(pertub)-time_interval):
     
     print(i)
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
@@ -118,7 +118,7 @@ for i in range(120, len(pertub)-time_interval):
     v= np.reshape(v,((1,v.shape[0],v.shape[1])))
     u= np.reshape(u,((1,u.shape[0],u.shape[1])))
 
-    if i == 120:
+    if i == 180:
         uas =  copy.copy(u)
         vas =  copy.copy(v)
 

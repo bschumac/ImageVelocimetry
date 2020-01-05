@@ -24,9 +24,11 @@ import os
 import copy
 from scipy.ndimage.filters import gaussian_filter as gf
 
+from scipy import ndimage
 
 
-experiment = "fire0ee3_99perc"
+
+experiment = "fire0ee3"
 
 
 if experiment == "T0":
@@ -95,6 +97,7 @@ outpath = datapath+"tiv/"+prefix+"_method_"+method+"_WS_"+str(ws)+"_OL_"+str(ol)
 if not os.path.exists(outpath):
     os.makedirs(outpath)
  
+    writeNetCDF(datapath, "test.nc", "Tb", pertub)
 
 #pertub[0,220:235,220:225] = 25
 #pertub[6,220:235,220+15:225+15] = 25
@@ -147,4 +150,126 @@ writeNetCDF(datapath,prefix+"_UAS.nc","u",uas)
 writeNetCDF(datapath,prefix+"_VAS.nc","v",vas)
 
 
+#737
+i = 757
+u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+1], window_size_x=ws, 
+                                 overlap_window=ol, overlap_search_area=olsa, search_area_size_x=sa, 
+                                 corr_method=method, mean_analysis = True, std_analysis = True, std_threshold = 15 )
+x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
 
+u = remove_outliers(u)
+v = remove_outliers(v)
+
+u = (u*5/60)*10
+v = (v*5/60)*10
+
+#plt.figure()
+#streamplot(np.flipud(u),np.flipud(v*-1),x,y,topo=pertub[i],enhancement = 1000,vmin = 0, vmax = 500, den=3.5, lw=0.7)
+#plt.savefig(outpath+str(i)+"streamplt.png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+#plt.close()
+#plt.imshow(gf(u,0.25))
+#plt.colorbar()
+outpath = "/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2018/test/"
+
+my_dpi=300
+plt.imshow(pertub[i], vmin = 0, vmax=700, cmap="inferno" )
+plt.colorbar()
+plt.quiver(x,y,np.flipud(np.round(u,2)),np.flipud(np.round(v,2)))
+plt.savefig(outpath+str(i+5)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+plt.close()
+
+
+rotated_x = ndimage.rotate(x, 90)
+rotated_y = ndimage.rotate(y, 90)
+rotated_u = np.flipud(np.round(u,2))
+rotated_v = np.flipud(np.round(v,2))
+
+rotated_pertub = ndimage.rotate(pertub[i], 90)
+rotated_pertub = ndimage.rotate(rotated_pertub, 180)
+
+rotated_pertub = np.fliplr(np.round(rotated_pertub,2))
+rotated_pertub = np.fliplr(np.round(rotated_pertub,1))
+
+skip = (slice(None, None, 2), slice(None, None, 2))
+
+
+jet_mat = np.genfromtxt("/home/benjamin/Met_ParametersTST/PNAS_Paper_Marwan/colormap_Fig2.txt", skip_header=0)
+jet_mat = numpy.vstack([jet_mat, np.array((1,0,0))])
+
+from matplotlib.colors import ListedColormap
+jet_matlab = ListedColormap(jet_mat, name='jet_matlab_custom')
+
+my_dpi=600
+fig, ax = plt.subplots(figsize=(5,8))
+
+im = ax.imshow(rotated_pertub, vmin = 0, vmax=800, cmap=jet_matlab )
+
+Q = plt.quiver(y[skip], x[skip], v[skip],u[skip]*-1, scale_units='inches', scale=25, 
+               linewidths=1.5, edgecolors='k', headwidth=5)
+
+plt.quiverkey(Q, 1.25, 0.15, 5, r'$5 \frac{m}{s}$', labelpos='E',
+                   coordinates='axes', labelsep = 0.05, angle = 0)
+
+cax = fig.add_axes([0.75, 0.27, 0.05, 0.5])
+fig.colorbar(im, cax=cax, orientation='vertical')
+#plt.show()
+
+
+plt.savefig(outpath+str(i)+"option_jet_0-800.png", dpi=my_dpi)
+plt.close()
+
+
+# , bbox_inches='tight',pad_inches = 0,transparent=False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+M = np.hypot(U, V)
+Q = ax3.quiver(X, Y, U, V, M, units='x', pivot='tip', width=0.022,
+               scale=1 / 0.15)
+
+ax3.scatter(X, Y, color='0.5', s=1)
+
+plt.show()
+
+
+
+import matplotlib.pyplot as plt
+from numpy.random import *
+
+
+x, y  = [1, 2, 3], [0.5, 0.5, 0.5]
+u1,v1 = randn(3), randn(3)
+u2,v2 = randn(3), randn(3)
+u3,v3 = randn(3), randn(3)
+QV1 = plt.quiver(x, y, u1, v1, color='r')
+QV2 = plt.quiver(x, y, u2, v2, color='b')
+QV3 = plt.quiver(x, y, u3, v3, color='g')
+plt.quiverkey(QV1, 1.2, 0.515, 2, 'arrow 1', coordinates='data')
+plt.quiverkey(QV2, 1.2, 0.520, 2, 'arrow 2', coordinates='data')
+plt.quiverkey(QV3, 1.2, 0.525, 2, 'arrow 3', coordinates='data')

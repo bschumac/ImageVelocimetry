@@ -7,11 +7,11 @@ from functions.TST_fun import *
 from scipy.io import loadmat
 file = loadmat('/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2018/Tb_streamwise_Area_EE1_3.mat')
 
-testfile = loadmat('/media/benjamin/Seagate Expansion Drive/BTT/testdata/Testarr.mat')
+#testfile = loadmat('/media/benjamin/Seagate Expansion Drive/BTT/testdata/Testarr.mat')
 
-testfile.keys()
 
-/home/benjamin/Met_ParametersTST/code/functions/Lucas_Kanade.py
+
+
 Tb = file['Tb_streamwise_Area_EE3']
 #Tb = np.array(Tb)
 #Tb = np.rot90(Tb,-1, axes=(1,-1))
@@ -31,8 +31,8 @@ print(Tb_test)
 #Tb_pertub = np.fliplr(Tb_pertub)
 
 
-#writeNetCDF("/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2018/", "Tb_streamwise_Area_EE3.nc", "Tb", Tb)
+writeNetCDF("/media/benjamin/Seagate Expansion Drive/Darfield_Burn_Exp_Crop_2018/", "Tb_streamwise_Area_EE3.nc", "Tb", Tb)
 
 
-#imgplot = plt.imshow(Tb[1])
-#plt.show()
+imgplot = plt.imshow(Tb[1])
+plt.show()

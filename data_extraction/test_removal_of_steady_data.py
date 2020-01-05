@@ -10,32 +10,13 @@ Created on Fri Jan  3 13:54:32 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-import sklearn.cluster
-import h5py
-from matplotlib import colors, cm
-import progressbar
-from joblib import Parallel, delayed
-import multiprocessing
-from functions.TST_fun import *
-from scipy import stats
-import datetime
-from math import sqrt
+from functions.TST_fun import readnetcdftoarr, writeNetCDF
 #import openpiv.filters
-import os
-import copy
-import scipy
-import pathos
-import skimage
 
+import copy
 
 
 arr = readnetcdftoarr("/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Tb_org_27Hz.nc")
-
-pix = arr[:,225,225 ]
-plt.plot(pix)
-
-
-pix[103:103+27]
 
 
 for i in range(0, len(arr)):
@@ -46,6 +27,9 @@ for i in range(0, len(arr)):
         #print(len(arr))
         arr = np.delete(arr,[range(i,i+27)],0)
         print(len(arr))
+
+outpath_netcdf = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/"
+writeNetCDF(outpath_netcdf,"Tb_org_cut_27Hz.nc","Tb",arr)
 
 
 counter = 1
