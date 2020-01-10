@@ -25,24 +25,14 @@ pertub = file.get("Tb_pertub")
 pertub = np.array(pertub)
 #pertub = create_tst_mean(pertub,4)
 
-
 datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
-file = h5py.File(datapath+'Tb_stab_cut_27Hz_noscale_norot.nc','r')
+file = h5py.File('/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/Tb_stab_27Hz.nc','r')
 #file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
 tb = file.get("Tb")
 tb = np.array(tb)
 
 
 #test_data= readnetcdftoarr("/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/Tb_3Hz_pertub_60s_py_mean3s.nc", "Tb_pertub")
-
-pixel = tb[:,225,225]
-len(pixel)
-plt.plot(pixel)
-
-
-with open(datapath+'pixel_3Hz_noscale_norot.txt', 'w') as f:
-    for item in pixel:
-        f.write("%s\n" % item)
 
 
 
