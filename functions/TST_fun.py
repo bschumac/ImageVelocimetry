@@ -81,6 +81,34 @@ def create_tst_subsample_mean(array, size=9):
 def create_tst_subsample(array, size = 9):
     return(array[1::size])
     
+def create_tst_mean(array, moving_mean_size = 60):
+    # creates a moving mean around each layer in array   
+
+    resultarr = np.zeros(np.shape(array))
+    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    for i in range(0,len(array)):
+        # moving mean array = actarray:
+        if i == 0:
+            actarray = array[0:moving_mean_size*2+1]
+        elif i != 0 and i != len(array) and i-(moving_mean_size)>= 0 and i+(moving_mean_size)<= len(array)-1:
+            actarray = array[int(i-moving_mean_size):int(i+moving_mean_size)+1]
+        elif i-(moving_mean_size)<= 0:
+            actarray = array[0:moving_mean_size*2+1]   
+        elif i+(moving_mean_size)>= len(array):
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]        
+        if i == len(array)-1:
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
+        
+        resultarr[i] = np.mean(actarray, axis=0)
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+                
+    bar.finish()
+    return(resultarr)
+
+
 
 
 
@@ -111,6 +139,41 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
                 
     bar.finish()
     return(resultarr)
+
+
+
+
+
+
+def MatToNpy(matfld, npyfld):
+    """
+    Transfer .mat files (version 7.3) into numpy files making them accesable for dask arrays. 
+     
+    
+    Parameters
+    ----------
+    matfld: string
+        The folder path where the mat files are stored.
+    npyfld: string
+        The folder path where the npy files will be stored
+    
+    
+    """
+    fls = os.listdir(matfld)
+    print("Files to read:")
+    print(len(fls))
+    counter = 0
+    for file in fls:
+        print(counter)
+        arrays = {}
+        f = h5py.File(filepath+file)
+        for k, v in f.items():
+            arrays[k] = np.array(v)
+        
+        file = file.replace(".mat", "")
+        arr = arrays["Data_im"]
+        np.save(npyfld+file, arr)
+        counter +=1
 
 
 
@@ -211,39 +274,33 @@ def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname
 
 
 
-def create_tst_mean(array, moving_mean_size = 60):
-    # creates a moving mean around each layer in array   
-
-    resultarr = np.zeros(np.shape(array))
-    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
-    bar.start()
-    bar_iterator = 0
-    for i in range(0,len(array)):
-        # moving mean array = actarray:
-        if i == 0:
-            actarray = array[0:moving_mean_size*2+1]
-        elif i != 0 and i != len(array) and i-(moving_mean_size)>= 0 and i+(moving_mean_size)<= len(array)-1:
-            actarray = array[int(i-moving_mean_size):int(i+moving_mean_size)+1]
-        elif i-(moving_mean_size)<= 0:
-            actarray = array[0:moving_mean_size*2+1]   
-        elif i+(moving_mean_size)>= len(array):
-            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]        
-        if i == len(array)-1:
-            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
-        
-        resultarr[i] = np.mean(actarray, axis=0)
-        bar.update(bar_iterator+1)
-        bar_iterator += 1
-                
-    bar.finish()
-    return(resultarr)
-
-
 
 
 
 def writeNetCDF(out_dir, out_name, varname, array):
+    """
+    Write an numpy array to disk. 
     
+    
+    Parameters
+    ----------
+    out_dir: string
+        output directory
+    out_name: string
+        output file name
+    varname: string
+        variable name of the array in the netcdf file
+    outpath: string (default "/")
+        The outpath for the plots - only the last plot of 10 plots is saved in this directory
+        Set to a proper directory when used with Boolean flag.
+    figname: string (default "hht_fig")
+        The output figure name.
+    Returns
+    -------
+    [mode(interval_lst),interval_lst] : list
+        The found most occuring and powerful period, and the list which was used to calculate this
+    
+    """
     # the output array to write will be nx x ny
     if len(array.shape) == 2:
         nx = array.shape[0]; ny = array.shape[1];

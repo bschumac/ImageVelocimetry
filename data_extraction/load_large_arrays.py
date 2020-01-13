@@ -23,19 +23,41 @@ filepath= '/media/benjamin/Seagate Expansion Drive/BTT_Turf/Telops_mat/'
 fls = os.listdir(filepath)
 
 filepath= '/media/benjamin/Seagate Expansion Drive/BTT_Turf/Telops_mat/'
-fls = os.listdir(filepath)
-counter = 0
-for file in fls:
-    print(counter)
-    arrays = {}
-    f = h5py.File(filepath+file)
-    for k, v in f.items():
-        arrays[k] = np.array(v)
+
+
+
+
+
+
+def MatToNpy(matfld, npyfld):
+    """
+    Transfer .mat files (version 7.3) into numpy files making them accesable for dask arrays. 
+     
     
-    file = file.replace(".mat", "")
-    arr = arrays["Data_im"]
-    np.save("/media/benjamin/Seagate Expansion Drive/BTT_Turf/Telops_npy/"+file, arr)
-    counter +=1
+    Parameters
+    ----------
+    matfld: string
+        The folder path where the mat files are stored.
+    npyfld: string
+        The folder path where the npy files will be stored
+    
+    
+    """
+    fls = os.listdir(matfld)
+    print("Files to read:")
+    print(len(fls))
+    counter = 0
+    for file in fls:
+        print(counter)
+        arrays = {}
+        f = h5py.File(filepath+file)
+        for k, v in f.items():
+            arrays[k] = np.array(v)
+        
+        file = file.replace(".mat", "")
+        arr = arrays["Data_im"]
+        np.save(npyfld+file, arr)
+        counter +=1
 
 
 
@@ -54,39 +76,25 @@ to_npy_info("/mnt/Seagate_Drive1/BTT_Turf/Telops_npy/",dtype=np.dtype('float32')
 
 btt_tb = da.from_npy_stack("/mnt/Seagate_Drive1/BTT_Turf/Telops_npy/")
 
-btt_tb1hz = btt_tb[1::60]
-c_btt= btt_tb1hz.compute()
+btt_tb1hz = btt_tb[1::10]
 
-
-writeNetCDF("/mnt/Seagate_Drive1/BTT_Turf/", 'BTT_Tb1Hz.netcdf', 'Tb', c_btt)
-
-
-from itertools import product, zip_longest
-mmap_mode="r"
-
-name = "from-npy-stack-%s" % dirname
-keys = list(product([name], *[range(len(c)) for c in chunks]))
-values = [
-    (np.load, os.path.join(dirname, "%d.npy" % i), mmap_mode)
-    for i in range(len(chunks[axis]))
-]
-dsk = dict(zip(keys, values))
+c_btt_h = np.swapaxes(btt_tb1hz, 1,2)
+c_btt_h = np.fliplr(btt_tb1hz)
+c_btt_h.compute_chunk_sizes()
 
 
 
+xrarr = xr.DataArray(c_btt_h)
+arr.chunks()
+xrarr.to_netcdf("/mnt/Seagate_Drive1/BTT_Turf/test.nc", engine = "netcdf4")
+                
 
+import matplotlib.pyplot as plt
+plt.imshow(c_btt_h[0])
 
+from functions.TST_fun import writeNetCDF, create_tst_pertubations_mm
+writeNetCDF("/home/benjamin/Met_ParametersTST/", 'BTT_Tb6Hz.netcdf', 'Tb', c_btt_h)
 
-
-
-from functions.TST_fun import create_tst_subsample_mean, create_tst_subsample
-
-btt_tb1hz = create_tst_subsample(btt_tb,size=60)
-
-
-
-Tb = file['Tb_streamwise_Area_EE3']
-
-
-arr3 = xr.DataArray(np.random.randn(2, 3),[('x', ['a', 'b']), ('y', [10, 20, 30])])
+btt_pertub = create_tst_pertubations_mm(c_btt_h,60)
+writeNetCDF("/home/benjamin/Met_ParametersTST/", 'BTT_Tb1Hz.netcdf', 'Tb_pertub', btt_pertub)
 
