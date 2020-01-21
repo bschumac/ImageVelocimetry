@@ -1,0 +1,3 @@
+DEBUG [SimpleXML.cpp:221] @ 7.59277e-05s :Failed to open file 
+ERROR [IRDeviceParams.cpp:159] @ 0.000109863s :Cannot find configuration file  ... aborting
+ERROR [DirectBridgeClientUSB.cpp:135] @ 0.000144043s :Cannot read xml params from path: 

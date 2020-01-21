@@ -24,8 +24,8 @@ import os
 
 T1 = False
 fire1 = False
-pre_fire = False
-pre_fire_1Hz = True
+pre_fire = True
+pre_fire_1Hz = False
 
 
 
@@ -151,7 +151,7 @@ else:
 #org_data = np.genfromtxt(datapath+fls[i+18500], delimiter=',', skip_header=1)
 
 def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_files, end_img, start_img = 0, interval=1, image_type1 = ".tif", 
-                   image_type2 = ".tif", method="ExtraRegressor"):
+                   image_type2 = ".tif", method="RandomForestRegressor"):
 
     
     
@@ -227,7 +227,7 @@ def retrievevalues(datapath_csv_files, datapath_rbg_files, datapath_stab_rgb_fil
         # Import the model we are using
     
         # Instantiate model with 1000 decision trees
-        rf = ExtraTreesRegressor(n_estimators = 500, random_state = 42, n_jobs = -1)
+        rf = ExtraTreesRegressor(n_estimators = 5000, random_state = 42, n_jobs = -1)
         
         # Train the model on training data
         rf.fit(train_features, train_labels);
@@ -268,6 +268,11 @@ final_pred_stab = retrievevalues(datapath_csv_files = datapath, datapath_rbg_fil
                                  start_img = start_img, end_img=end_img, interval=1, image_type1 = ".tif", image_type2 = ".tif")
 
 
+
+org_data.shape
+
+plt.imshow(org_data[0]-final_pred_stab[0])
+plt.colorbar()
 
 writeNetCDF(org_datapath,"Tb_stab_cut_27Hz_noscale_norot.nc","Tb",final_pred_stab)
 #Tb_stab_pertub_py = create_tst_pertubations_mm(final_pred_stab, 400)

@@ -28,9 +28,15 @@ import skimage
 
 
 
+### USER INPUT ###
+
+experiment = "pre_fire_27Hz"
 
 
-experiment = "pre_fire_1Hz"
+
+
+### END ###
+
 
 
 if experiment == "T0":
@@ -46,28 +52,57 @@ elif experiment == "T120Hz":
     mean_time = 0
 elif experiment == "pre_fire_27Hz":
     datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
-    file = h5py.File(datapath+'Tb_stab_cut_27Hz_noscale_norot.nc')
+    file = h5py.File(datapath+'Tb_stab_cut_red_27Hz.nc')
     mean_time = 3
+    subsample = 9
+    hard_subsample = False
+    
+
+
 
 
 tb = file.get("Tb")
 tb = np.array(tb)
 
 
-tb = create_tst_subsample(tb, 9)
 
-#tb = create_tst_subsample_mean(tb, 27)
+
+
+
+
+
+if hard_subsample:
+    tb = create_tst_subsample(tb, subsample)
+elif subsample != 0:
+    tb = create_tst_subsample_mean(tb, subsample)
+    
 
 if mean_time != 0:
     tb = create_tst_mean(tb,mean_time) 
 
 
-pertub = create_tst_pertubations_mm(tb,180)
+
+
+#writeNetCDF(datapath, "Tb_stab_cut_red_1Hz_hardsubsample_"+str(hard_subsample)+".nc", "Tb", tb)
+
+
+
+pixel = tb[:,150,150]
+len(pixel)
+plt.plot(pixel)
+
+
+with open(datapath+"Tb_stab_cut_red_3Hz_hardsubsample_"+str(hard_subsample)+"pixel.txt", 'w') as f:
+    for item in pixel:
+        f.write("%s\n" % item)
 
 
 
 
-#writeNetCDF(datapath, "Tb_3Hz_pertub_60s_py_cut_norot.nc", "Tb_pertub", pertub)
+pertub = create_tst_pertubations_mm(tb,360)
+#writeNetCDF(datapath, "Tb_stab_cut_red_3Hz_120s_meantime_0_hardsubsample_"+str(hard_subsample)+"_pertub.nc", "Tb_pertub", pertub)
+
+
 
 
 
@@ -75,18 +110,17 @@ pertub = create_tst_pertubations_mm(tb,180)
 
 method = "greyscale"
 my_dpi = 300
-time_interval = 1
+time_interval = 12
 
 
 ws=16
 ol = 15
 sa = 32
 olsa = 28
-mean_a = False
-std_a = False
+
 
 outpath = (datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
-str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"_mean_a_"+str(mean_a)+"_std_a"+str(std_a)+"/")
+str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"_subsample_"+str(subsample)+"_hard_subsample_"+str(hard_subsample)+"/")
 
 if not os.path.exists(outpath):
     os.makedirs(outpath)
@@ -95,11 +129,11 @@ print(outpath)
 
 
 
-for i in range(180, len(pertub)-time_interval):
+for i in range(0, len(pertub)-time_interval):
     
     print(i)
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
-                                 search_area_size_x=sa, corr_method=method, mean_analysis = mean_a, std_analysis = std_a, std_threshold = 10)
+                                 search_area_size_x=sa, corr_method=method, mean_analysis = False, std_analysis = False, std_threshold = 10)
     x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
     
     u = remove_outliers(u,filter_size=9, sigma=1)
@@ -118,7 +152,7 @@ for i in range(180, len(pertub)-time_interval):
     v= np.reshape(v,((1,v.shape[0],v.shape[1])))
     u= np.reshape(u,((1,u.shape[0],u.shape[1])))
 
-    if i == 180:
+    if i == 0:
         uas =  copy.copy(u)
         vas =  copy.copy(v)
 
@@ -126,14 +160,35 @@ for i in range(180, len(pertub)-time_interval):
         uas = np.append(uas,u,0)
         vas = np.append(vas,v,0)
 
+from functions.Lucas_Kanade import *
 
-writeNetCDF(outpath, 'UAS.netcdf', 'u', uas)
 
-writeNetCDF(outpath, 'VAS.netcdf', 'v', vas)
+for i in range(0, len(pertub)-time_interval): 
+    print(i)
+    
+    u, v = lucas_kanade_np(pertub[i], pertub[i+time_interval], win=7)
+    
+    v= np.reshape(v,((1,v.shape[0],v.shape[1])))
+    u= np.reshape(u,((1,u.shape[0],u.shape[1])))
 
-writeNetCDF(outpath, 'WS.netcdf', 'ws', calcwindspeed(uas,vas)*0.2)
+    if i == 0:
+        uas =  copy.copy(u)
+        vas =  copy.copy(v)
 
-writeNetCDF(outpath, 'WD.netcdf', 'wd', calcwinddirection(uas,vas))
+    else:
+        uas = np.append(uas,u,0)
+        vas = np.append(vas,v,0)
+    
+
+
+
+writeNetCDF(outpath, 'UAS_LK.netcdf', 'u', uas)
+
+writeNetCDF(outpath, 'VAS_LK.netcdf', 'v', vas)
+
+writeNetCDF(outpath, 'WS_LK.netcdf', 'ws', calcwindspeed(uas,vas)*0.2)
+
+writeNetCDF(outpath, 'WD_LK.netcdf', 'wd', calcwinddirection(uas,vas))
 
 
   

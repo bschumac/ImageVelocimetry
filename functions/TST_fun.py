@@ -20,6 +20,10 @@ import copy
 
 
 
+def to_npy_info(dirname, dtype, chunks, axis):
+    with open(os.path.join(dirname, 'info'), 'wb') as f:
+        pickle.dump({'chunks': chunks, 'dtype': dtype, 'axis': axis}, f)
+
 
 def calcwinddirection(u,v): 
     
