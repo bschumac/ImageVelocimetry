@@ -36,7 +36,17 @@ from functions.TST_fun import to_npy_info, writeNetCDF
 
 
 btt_tb = da.from_npy_stack("/mnt/Seagate_Drive1/BTT_Turf/Telops_npy/")
+
+btt_tb_std = da.nanstd(btt_tb,0)
+std_test= np.array(btt_tb_std)
+std_test = btt_tb_std.compute()
+
+plt.imshow(btt_tb_std)
+
+ 
 btt_tb1hz = btt_tb[1::360]
+
+
 
 c_btt_h = np.swapaxes(btt_tb1hz, 1,2)
 c_btt_h = np.fliplr(btt_tb1hz)

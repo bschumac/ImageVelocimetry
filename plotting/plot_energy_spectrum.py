@@ -64,7 +64,9 @@ tb = np.array(tb)
 
 
 tb_cut = tb[:,50:250,50:250]
-plt.plot(pix)
+pix = tb_cut[:,100,100]
+
+
 
 
 
@@ -72,7 +74,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 
 
-x = pix - np.mean(pix)
+#x = pix - np.mean(pix)
 fs = 27
 
 #tb_cut.flatten()
@@ -84,9 +86,9 @@ pxx_lst = []
 for i in range(0,len(tb_cut[1,:,:])):
     print(i)
     for j in range(0,len(tb_cut[1,:,:])):
-        f, Pxx = signal.welch(tb_cut[:,i,j], fs, nperseg=256)
+        f, Pxx = signal.welch(tb_cut[:,i,j], fs, nperseg=1024)
         fq_lst.append(f)
-        pxx_lst.append(Pxx)
+        pxx_lst.append(Pxx*f)
     
 
 
@@ -100,7 +102,6 @@ pxx_mean =np.mean(pxx_arr,axis=0)
 #f_res, Pxx_res = signal.welch(x, fs, nperseg=2048)
 
 
-tb_cut.shape
 
 
 
@@ -118,17 +119,18 @@ b = np.power(10,np.log10(a)*(-1*5/3)-2.8)
 
 plt.yscale("log")
 plt.xscale("log")
-plt.plot(fq_lst[1],pxx_lst[1])
-plt.plot(fq_lst[20],pxx_lst[20])
+#plt.plot(fq_lst[1],pxx_lst[1])
+#plt.plot(fq_lst[20],pxx_lst[20])
 plt.plot(fq_lst[173],pxx_lst[173])
 plt.plot(fq_lst[54],pxx_lst[54])
-plt.plot(fq_lst[125],pxx_lst[125])
+#plt.plot(np.mean(fq_lst),np.mean(pxx_lst))
+
+
 
 plt.plot(a,b)
 plt.show()
 
 
-plt.plot(fq_lst[1])
 
 
 

@@ -18,6 +18,11 @@ from collections import Counter
 from functions.hht import hht
 import copy
 
+from functions.PyEMD.EMD_matlab import *
+from functions.PyEMD.EEMD import *
+import math
+from scipy.fftpack import *
+import gc
 
 
 def to_npy_info(dirname, dtype, chunks, axis):
@@ -45,6 +50,19 @@ def readnetcdftoarr(datapath_to_file, var = 'Tb'):
     arr = file.get(var)
     nparr = np.array(arr)
     return(nparr)
+
+
+def removeSteadyImages(arr, rec_feq = 27):  
+    for i in range(0, len(arr)):
+        act_val = arr[i]
+        if np.all(act_val == arr[i:i+rec_feq]):
+            print("yes")
+            print(i)
+            #print(len(arr))
+            arr = np.delete(arr,[range(i,i+27)],0)
+            print(len(arr))
+    return(arr)
+
 
 
 
@@ -181,12 +199,77 @@ def MatToNpy(matfld, npyfld):
 
 
 
-def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname = "hht_fig", FUN="all"):
+
+def find_interval(signal, fs, imf_no = 1):
     """
     Compute the interval setting for the TIV. 
-    Basically a wrapper function for the hht function
+    Calculating a hilbert transform from the instrinct mode functions (imfs).
     This is based on the hilbert-huang transform assuming non-stationarity of the given dataset.
-    The function returns the most powerful period (frequency = 1/period) 
+    The function returns a suggested interval (most powerful frequency) based on the weighted average. 
+    The weights are the calculated instantaneous energies. 
+    
+    Parameters
+    ----------
+    signal: 1d np.ndarray
+        a one dimensional array which contains the brightness temperature (perturbation) of one pixel over time.
+    fs: int 
+        the fps which was used to record the imagery 
+    imf_no: int (default 1)
+        The imf which will be used to calculate the interval on. IMF 1 is the one with the highest frequency.
+    Returns
+    -------
+    recommended_interval : float
+        The found most powerful interval in float. Needs rounding to the next int.
+    
+    """
+    eemd = EEMD()
+    imfs = eemd.eemd(signal)
+    imf = imfs[imf_no-1,:]        
+    
+    from scipy.signal import hilbert
+    sig = hilbert(imf)
+    
+    energy = np.square(np.abs(sig))
+    phase = np.arctan2(sig.imag, sig.real)
+    omega = np.gradient(np.unwrap(phase))
+    
+    omega = fs/(2*math.pi)*omega
+    #omegaIdx = np.floor((omega-F[0])/FResol)+1;
+    #freqIdx = 1/omegaIdx;
+    
+    insf = omega
+    inse = energy
+    
+    rel_inse = inse/np.nanmax(inse)
+    insf_weigthed_mean = np.average(insf,weights=rel_inse)
+    insp = 1/insf_weigthed_mean
+    recommended_interval = np.round(fs*insp,1)
+    del(eemd)
+    del(imfs)
+    del(imf)
+    del(sig)
+    del(energy)
+    del(phase)
+    del(omega)
+    del(insf)
+    del(inse)
+    del(rel_inse)
+    gc.collect()
+    return(recommended_interval)
+    
+
+
+
+
+
+
+
+
+def randomize_find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname = "hht_fig"):
+    """
+    Compute the interval setting for the TIV. 
+    Basically a wrapper function for the find_interval function
+    
     
     Parameters
     ----------
@@ -194,24 +277,20 @@ def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname
         a three dimensional array which contains the brightness temperature (perturbation).
     rec_freq: int (default 1)
         the fps which was used to record the imagery 
-    plot_hht: boolean (default False)
-        Boolean flag to plot  the results for review
-    outpath: string (default "/")
+    plot_hht: boolean (default False) (not implemented yet!)
+        Boolean flag to plot the results for review (not implemented yet!)
+    outpath: string (default "/") (not implemented yet!)
         The outpath for the plots - only the last plot of 10 plots is saved in this directory
-        Set to a proper directory when used with Boolean flag.
-    figname: string (default "hht_fig")
-        The output figure name.
+        Set to a proper directory when used with Boolean flag. (not implemented yet!)
+    figname: string (default "hht_fig") (not implemented yet!)
+        The output figure name. (not implemented yet!)
     Returns
     -------
     [mode(interval_lst),interval_lst] : list
         The found most occuring and powerful period, and the list which was used to calculate this
     
     """
-    
-    
-    
-    
-        
+          
     for i in range(0,11):
         rand_x = np.round(np.random.rand(),2)
         rand_y = np.round(np.random.rand(),2)
@@ -226,20 +305,25 @@ def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname
         pixel = data[:,int(x),int(y)]
         #print(data.shape)
         
-        act_interval = hht(pixel=pixel, time=np.arange(0, len(pixel)), outpath=outpath, 
-                           figname=figname, freqsol=12, freqmax=12 ,timesol=int(len(data)/rec_freq), 
-                           rec_freq = rec_freq, plot_hht = plot_hht, FUN = FUN)
+        act_interval1 = find_interval(pixel, rec_freq, imf_no = 1)
+        act_interval2 = find_interval(pixel, rec_freq, imf_no = 2)
+        
+        act_intervals = [round(act_interval1),round(act_interval2)]
+        act_intervals2 = [act_interval1,act_interval2]
         
         
         if i == 0:
-            interval_lst = copy.copy(act_interval)
+            interval_lst = copy.copy([act_intervals])
+            interval_lst2 = copy.copy([act_intervals2])
         else:
-            interval_lst = np.append(interval_lst,act_interval,0)
+            interval_lst.append(act_intervals) 
+            interval_lst2.append(act_intervals2)
+            #np.append(interval_lst,act_interval,0)
     
     try:
-        first_most = mode(interval_lst[0::2,:][:,0])
+        first_most = mode(list(zip(*interval_lst))[0])
     except:
-        d_same_count_intervals = Counter(interval_lst[0::2,:][:,1])
+        d_same_count_intervals = Counter(list(zip(*interval_lst))[0])
         d_same_count_occ = Counter(d_same_count_intervals.values())
         for value in d_same_count_occ.values():
             if value == 2:
@@ -251,10 +335,10 @@ def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname
             if value == 5:
                 first_most = np.mean(list(d_same_count_intervals.keys())[0:5])   
     try:
-        second_most = mode(interval_lst[0::2,:][:,1]) 
+        second_most = mode(list(zip(*interval_lst))[1]) 
     except:
-        sec_most_lst = interval_lst[0::2,:][:,1]
-        d_same_count_intervals = Counter(interval_lst[0::2,:][:,1])
+        sec_most_lst = list(zip(*interval_lst))[1]
+        d_same_count_intervals = Counter(list(zip(*interval_lst))[1])
         # 
         try:
             if first_most in d_same_count_intervals.keys():
@@ -274,7 +358,16 @@ def find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/", figname
                 if value == 5:
                     second_most = np.mean(list(d_same_count_intervals.keys())[0:5])            
  
-    return([first_most, second_most, interval_lst])
+    return([first_most, second_most, interval_lst2])
+
+
+
+
+
+
+
+
+
 
 
 

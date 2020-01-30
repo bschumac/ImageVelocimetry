@@ -30,7 +30,7 @@ import skimage
 
 ### USER INPUT ###
 
-experiment = "pre_fire_27Hz"
+experiment = "pre_fire_"
 
 
 
@@ -50,11 +50,13 @@ elif experiment == "T120Hz":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub20s_py_virdris_20Hz.nc','r')
     mean_time = 0
-elif experiment == "pre_fire_27Hz":
+elif experiment == "pre_fire_":
+    rec_freq = 27
     datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
     file = h5py.File(datapath+'Tb_stab_cut_red_27Hz.nc')
-    mean_time = 3
+    mean_time = 0
     subsample = 9
+    experiment = experiment+str(int(rec_freq/subsample))+"Hz"
     hard_subsample = False
     
 
@@ -83,13 +85,21 @@ if mean_time != 0:
 
 
 
-#writeNetCDF(datapath, "Tb_stab_cut_red_1Hz_hardsubsample_"+str(hard_subsample)+".nc", "Tb", tb)
+ret_lst = randomize_find_interval(data = tb,rec_freq = 3)
+
+
+
+
+np.mean(list(zip(*ret_lst[2]))[0])
+np.mean(list(zip(*ret_lst[2]))[1])
+
+ret_lst[1]
 
 
 
 pixel = tb[:,150,150]
 len(pixel)
-plt.plot(pixel)
+
 
 
 with open(datapath+"Tb_stab_cut_red_3Hz_hardsubsample_"+str(hard_subsample)+"pixel.txt", 'w') as f:
@@ -110,7 +120,7 @@ pertub = create_tst_pertubations_mm(tb,360)
 
 method = "greyscale"
 my_dpi = 300
-time_interval = 12
+time_interval = int(ret_lst[0])*3
 
 
 ws=16
@@ -132,6 +142,8 @@ print(outpath)
 for i in range(0, len(pertub)-time_interval):
     
     print(i)
+    
+    
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
                                  search_area_size_x=sa, corr_method=method, mean_analysis = False, std_analysis = False, std_threshold = 10)
     x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
@@ -160,6 +172,10 @@ for i in range(0, len(pertub)-time_interval):
         uas = np.append(uas,u,0)
         vas = np.append(vas,v,0)
 
+
+
+
+
 from functions.Lucas_Kanade import *
 
 
@@ -182,13 +198,13 @@ for i in range(0, len(pertub)-time_interval):
 
 
 
-writeNetCDF(outpath, 'UAS_LK.netcdf', 'u', uas)
+writeNetCDF(outpath, 'UAS.netcdf', 'u', uas)
 
-writeNetCDF(outpath, 'VAS_LK.netcdf', 'v', vas)
+writeNetCDF(outpath, 'VAS.netcdf', 'v', vas)
 
-writeNetCDF(outpath, 'WS_LK.netcdf', 'ws', calcwindspeed(uas,vas)*0.2)
+writeNetCDF(outpath, 'WS.netcdf', 'ws', calcwindspeed(uas,vas)*0.2)
 
-writeNetCDF(outpath, 'WD_LK.netcdf', 'wd', calcwinddirection(uas,vas))
+writeNetCDF(outpath, 'WD.netcdf', 'wd', calcwinddirection(uas,vas))
 
 
   
