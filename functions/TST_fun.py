@@ -52,15 +52,18 @@ def readnetcdftoarr(datapath_to_file, var = 'Tb'):
     return(nparr)
 
 
-def removeSteadyImages(arr, rec_feq = 27):  
-    for i in range(0, len(arr)):
-        act_val = arr[i]
-        if np.all(act_val == arr[i:i+rec_feq]):
-            print("yes")
-            print(i)
-            #print(len(arr))
-            arr = np.delete(arr,[range(i,i+27)],0)
-            print(len(arr))
+def removeSteadyImages(arr, rec_feq = 27):
+    try:
+        for i in range(0, len(arr)):
+            act_val = arr[i]
+            if np.all(act_val == arr[i:i+rec_feq]):
+                print("yes")
+                print(i)
+                #print(len(arr))
+                arr = np.delete(arr,[range(i,i+27)],0)
+                print(len(arr))
+    except:
+        pass
     return(arr)
 
 

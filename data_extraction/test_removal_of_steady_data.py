@@ -18,17 +18,8 @@ import copy
 
 arr = readnetcdftoarr("/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Tb_org_27Hz.nc")
 
-def removeSteadyImages(arr, rec_feq = 27):
-    
-    for i in range(0, len(arr)):
-        act_val = arr[i]
-        if np.all(act_val == arr[i:i+rec_feq]):
-            print("yes")
-            print(i)
-            #print(len(arr))
-            arr = np.delete(arr,[range(i,i+27)],0)
-            print(len(arr))
-    return(arr)
+
+
 
 outpath_netcdf = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/"
 writeNetCDF(outpath_netcdf,"Tb_org_cut_27Hz.nc","Tb",arr)
