@@ -52,21 +52,20 @@ def readnetcdftoarr(datapath_to_file, var = 'Tb'):
     return(nparr)
 
 
-def removeSteadyImages(arr, rec_feq = 27):
+def removeSteadyImages(arr, rec_feq = 27, print_out = True):
     try:
         for i in range(0, len(arr)):
             act_val = arr[i]
             if np.all(act_val == arr[i:i+rec_feq]):
-                print("yes")
-                print(i)
+                if print_out:
+                    print("yes")
+                    print(i)
                 #print(len(arr))
                 arr = np.delete(arr,[range(i,i+27)],0)
-                print(len(arr))
+                #print(len(arr))
     except:
         pass
     return(arr)
-
-
 
 
 def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
@@ -91,7 +90,6 @@ def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
         counter+=1
     
     return(org_data)
-
 
 
 def create_tst_subsample_mean(array, size=9):
