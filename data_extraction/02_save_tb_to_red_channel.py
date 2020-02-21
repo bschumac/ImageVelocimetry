@@ -49,43 +49,6 @@ for i in range(0,len(Tb_org)):
     
 
 
-def read_stab_red_imgs(stab_path, Tb_org):
-    # needs hard improvement
-    
-    import os
-    import progressbar
-    import copy
-    
-    mean_dif = []
-    length_fls = len(os.listdir(stab_path))
-    bar = progressbar.ProgressBar(maxval=length_fls, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
-    bar.start()
-    bar_iterator = 0
-    for i in range(1, length_fls):      
-        
-        #read_img = np.array(plt.imread(stab_path+format(i, '04d')+".tif")[:,:,:3])
-        read_img = np.asarray(Image.open(stab_path+format(i, '04d')+".tif"))
-        read_img = read_img[:,:,0]
-        Tb_stab = (read_img/10)+10
-
-        
-        mean_error = np.nanmean(Tb_org[i-1,50:250,50:250] - Tb_stab[50:250,50:250])
-        mean_dif.append(mean_error)
-        
-        Tb_stab= np.reshape(Tb_stab,((1,Tb_stab.shape[0],Tb_stab.shape[1])))
-        bar.update(bar_iterator+1)
-        bar_iterator += 1
-        
-        if i == 1:
-            Tb_stab_final =  copy.copy(Tb_stab)
-    
-        else:
-            Tb_stab_final = np.append(Tb_stab_final,Tb_stab,0)
-    
-    return([Tb_stab_final,mean_dif])
-
-        
-
 Tb_org = readnetcdftoarr(datapath+"Tb_org_cut_27Hz.nc")
 tb_stab_lst = read_stab_red_imgs("/home/benjamin/Met_ParametersTST/Pre_Fire/Tier02/Optris_data/Flight01_tif_red_27Hz_cut_stab/", Tb_org)
 

@@ -44,13 +44,16 @@ elif experiment == "T1":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
     mean_time = 5
+    
 elif experiment == "T120Hz":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub20s_py_virdris_20Hz.nc','r')
     mean_time = 0
+    fs = 20
 elif experiment == "pre_fire_27Hz":
     datapath = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
     file = h5py.File(datapath+'Tb_stab_cut_red_27Hz.nc')
+    fs = 27
     mean_time = 0
     subsample = 9
     hard_subsample = False
@@ -67,7 +70,7 @@ tb_cut = tb[:,50:250,50:250]
 pix = tb_cut[:,100,100]
 
 
-
+plt.imshow(tb[1,:,:])
 
 
 import matplotlib.pyplot as plt
@@ -75,7 +78,7 @@ from scipy import signal
 
 
 #x = pix - np.mean(pix)
-fs = 27
+
 
 #tb_cut.flatten()
 
@@ -94,25 +97,9 @@ for i in range(0,len(tb_cut[1,:,:])):
 
 
 
-fq_arr = np.array(fq_lst)
-pxx_arr = np.array(pxx_lst)
-fq_mean = np.mean(fq_arr,axis=1)
-pxx_mean =np.mean(pxx_arr,axis=0)
+a = np.array([0.03,0.1,1])
 
-#f_res, Pxx_res = signal.welch(x, fs, nperseg=2048)
-
-
-
-
-
-plt.yscale("log")
-plt.xscale("log")
-plt.plot(fq_lst[1],pxx_mean*fq_lst[1])
-
-
-a = np.array([0.01,0.1,1])
-
-b = np.power(10,np.log10(a)*(-1*5/3)-2.8)
+b = np.power(10,np.log10(a)*(-1*5/3)-3.5)
 
 
 
@@ -158,6 +145,22 @@ plt.show()
 
 
 
+
+
+fq_arr = np.array(fq_lst)
+pxx_arr = np.array(pxx_lst)
+fq_mean = np.mean(fq_arr,axis=1)
+pxx_mean =np.mean(pxx_arr,axis=0)
+
+#f_res, Pxx_res = signal.welch(x, fs, nperseg=2048)
+
+
+
+
+
+plt.yscale("log")
+plt.xscale("log")
+plt.plot(fq_lst[1],pxx_mean*fq_lst[1])
 
 
 

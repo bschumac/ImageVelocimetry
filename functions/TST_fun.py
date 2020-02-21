@@ -23,6 +23,7 @@ from functions.PyEMD.EEMD import *
 import math
 from scipy.fftpack import *
 import gc
+from PIL import Image
 
 
 def to_npy_info(dirname, dtype, chunks, axis):
@@ -61,7 +62,7 @@ def removeSteadyImages(arr, rec_feq = 27, print_out = True):
                     print("yes")
                     print(i)
                 #print(len(arr))
-                arr = np.delete(arr,[range(i,i+27)],0)
+                arr = np.delete(arr,[range(i,i+rec_feq)],0)
                 #print(len(arr))
     except:
         pass
@@ -363,6 +364,43 @@ def randomize_find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/
 
 
 
+
+def read_stab_red_imgs(stab_path, Tb_org, subtraction=0):
+    # needs hard improvement
+    
+    import os
+    import progressbar
+    import copy
+    
+    mean_dif = []
+    length_fls = len(os.listdir(stab_path))
+    bar = progressbar.ProgressBar(maxval=length_fls, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    for i in range(1, length_fls):      
+        
+        #read_img = np.array(plt.imread(stab_path+format(i, '04d')+".tif")[:,:,:3])
+        read_img = np.asarray(Image.open(stab_path+format(i, '04d')+".tif"))
+        read_img = read_img[:,:,0]
+        Tb_stab = (read_img/10)+subtraction
+
+        
+        mean_error = np.nanmean(Tb_org[i-1,50:250,50:250] - Tb_stab[50:250,50:250])
+        mean_dif.append(mean_error)
+        
+        Tb_stab= np.reshape(Tb_stab,((1,Tb_stab.shape[0],Tb_stab.shape[1])))
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+        
+        if i == 1:
+            Tb_stab_final =  copy.copy(Tb_stab)
+    
+        else:
+            Tb_stab_final = np.append(Tb_stab_final,Tb_stab,0)
+    
+    return([Tb_stab_final,mean_dif])
+
+        
 
 
 
