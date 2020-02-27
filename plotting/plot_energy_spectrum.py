@@ -28,7 +28,7 @@ import skimage
 
 ### USER INPUT ###
 
-experiment = "pre_fire_27Hz"
+experiment = "T120Hz"
 
 
 
@@ -62,7 +62,7 @@ elif experiment == "pre_fire_27Hz":
 
 
 
-tb = file.get("Tb")
+tb = file.get("Tb_pertub")
 tb = np.array(tb)
 
 

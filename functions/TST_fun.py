@@ -365,7 +365,7 @@ def randomize_find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/
 
 
 
-def read_stab_red_imgs(stab_path, Tb_org, subtraction=0):
+def read_stab_red_imgs(stab_path, subtraction=0):
     # needs hard improvement
     
     import os
@@ -385,8 +385,8 @@ def read_stab_red_imgs(stab_path, Tb_org, subtraction=0):
         Tb_stab = (read_img/10)+subtraction
 
         
-        mean_error = np.nanmean(Tb_org[i-1,50:250,50:250] - Tb_stab[50:250,50:250])
-        mean_dif.append(mean_error)
+        #mean_error = np.nanmean(Tb_org[i-1,50:250,50:250] - Tb_stab[50:250,50:250])
+        #mean_dif.append(mean_error)
         
         Tb_stab= np.reshape(Tb_stab,((1,Tb_stab.shape[0],Tb_stab.shape[1])))
         bar.update(bar_iterator+1)

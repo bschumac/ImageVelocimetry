@@ -23,6 +23,8 @@ if experiment == "T1":
     outpath_tb_org = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/"
     outpath_rbg_unstable = "/home/benjamin/Met_ParametersTST/T1/Tier01/12012019/Optris_data/Flight03_O80_1616_tif_redvalue/"
     outpath_rbg_stable = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Flight03_O80_1616_stab_tif_redvalue/"
+    outpath_tb_stable = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/"
+    
     
     rec_freq = 80
     out_freq = 20
@@ -84,28 +86,31 @@ if redvalue:
     # everything from save_tb_to_red_channel
     
 # Step 5: MANUAL Blender Stabilization -> Tier02
-
-saved_min = 186/10
+if experiment == "T1":
+    saved_min = 186/10
 
 
 
     
 
 # Step 6: Retrieve values from stable images
-tb_stab_lst = read_stab_red_imgs(outpath_rbg_stable, arr_steady)
+tb_stab_lst = read_stab_red_imgs(outpath_rbg_stable)
  
-outpath2 = "/home/benjamin/Met_ParametersTST/Pre_Fire/Tier03/Optris_data/"
-writeNetCDF(outpath2, "Tb_stab_cut_red_27Hz", "Tb", tb_stab_lst[0])
+
+writeNetCDF(outpath_tb_stable, "Tb_stab_cut_red_20Hz.nc", "Tb", tb_stab_lst[0])
   
-    
-    
-    
+
     
 
 # Step 7: Write out stable tb to netcdf file -> Tier03
 
 
+arr = readnetcdftoarr(outpath_tb_stable+"Tb_stab_cut_red_20Hz.nc")
 
+arr = arr+18.6
+arr = np.round(arr,2)
+writeNetCDF(outpath_tb_stable, "Tb_stab_cut_red_20Hz_test.nc", "Tb", arr)
+  
 
 
 
