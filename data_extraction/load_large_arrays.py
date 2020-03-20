@@ -37,20 +37,21 @@ from functions.TST_fun import to_npy_info, writeNetCDF
 
 btt_tb = da.from_npy_stack("/mnt/Seagate_Drive1/BTT_Turf/Telops_npy/")
 
-btt_tb_std = da.nanstd(btt_tb,0)
-std_test= np.array(btt_tb_std)
-std_test = btt_tb_std.compute()
+#btt_tb_std = da.nanstd(btt_tb,0)
+#std_test= np.array(btt_tb_std)
+#std_test = btt_tb_std.compute()
 
-plt.imshow(btt_tb_std)
-
- 
-btt_tb1hz = btt_tb[1::360]
+#plt.imshow(btt_tb_std)
 
 
+btt_tb20hz = btt_tb[1::3]
 
-c_btt_h = np.swapaxes(btt_tb1hz, 1,2)
-c_btt_h = np.fliplr(btt_tb1hz)
+
+c_btt_h = np.swapaxes(btt_tb6hz, 1,2)
+c_btt_h = np.fliplr(btt_tb6hz)
 c_btt_h.compute_chunk_sizes()
+
+btt_tb.to_netcdf("/mnt/Seagate_Drive1/BTT_Turf/BTT_Tb_Hz.nc", engine = "netcdf4")
 
 xrarr = xr.DataArray(c_btt_h, dims=['time', 'x', 'y'])
 rolling = xrarr.rolling({'time':10}, center=True)

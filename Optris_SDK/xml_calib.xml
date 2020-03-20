@@ -1,0 +1,19 @@
+<imager xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<serial>16110026</serial>
+  <videoformatindex>0</videoformatindex>
+  <calipath>/usr/share/libirimager/cali</calipath>
+  <fov>80</fov>
+  <temperature>
+    <min>-20</min>
+    <max>100</max>
+  </temperature>
+  <framerate>27.0</framerate>
+  <outputmode>2</outputmode>
+  <bispectral>0</bispectral>
+  <average>0</average>
+  <autoflag>
+   <enable>1</enable>
+   <mininterval>15.0</mininterval>
+   <maxinterval>0.0</maxinterval>
+  </autoflag>
+</imager>

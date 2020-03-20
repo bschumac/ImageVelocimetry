@@ -13,8 +13,13 @@ Tb_stab = readnetcdftoarr("/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/O
 Tb_org = readnetcdftoarr("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_org.nc")
 
 
-from ctypes import *
+import ctypes as ct 
 
-libir = cdll.LoadLibrary(util.find_library("irdirectsdk"))
+libir = ct.cdll.LoadLibrary(ct.util.find_library("irdirectsdk"))
 
-libir.evo_irimager_usb_init()
+image_ini = libir.evo_irimager_usb_init("/home/benjamin/test2.xml",0,0)
+
+
+libir.getTemprangeDecimal()
+
+#libir.evo_irimager_get_thermal_image_size()

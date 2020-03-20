@@ -14,7 +14,7 @@ Created on Wed Feb 19 11:31:47 2020
 from functions.TST_fun import *
 import os
 from PIL import Image
-experiment = "T1"
+experiment = "Tasman_1_2"
 
 
 if experiment == "T1":
@@ -39,14 +39,23 @@ elif experiment == "pre_fire_":
 elif experiment == "T2":
     rec_freq = 80
     #datapath = 
-   
+
+elif experiment == "Tasman_1_2":
+    # Harddrive 1, 2. Start 25/02/2020 - 11:30 (UTC?)
+    rec_freq = 27
+    out_freq = 0.5
+    
+    datapath_csv = "/mnt/Seagate_Drive1/TAS1/csv_TAS1/TAS1_2/"
+    outpath_tb_org = "/mnt/Seagate_Drive1/TAS1/"
+    start_img = 0
+    end_img = 0
 
 
 # Step 2: Read files to arr
 
 
 fls = os.listdir(datapath_csv)
-len(fls)
+len(fls)/270
 arr = readcsvtoarr(datapath_csv_files=datapath_csv,start_img=start_img,end_img=end_img,interval=int(rec_freq/out_freq))
 
 
@@ -54,7 +63,9 @@ arr = readcsvtoarr(datapath_csv_files=datapath_csv,start_img=start_img,end_img=e
 
 arr_steady = removeSteadyImages(arr, rec_feq = 20, print_out = True)
 
-writeNetCDF(outpath_tb_org, "Tb_org_20Hz_test.nc", "tb", arr_steady)
+arr = np.flipud(arr)
+
+writeNetCDF(outpath_tb_org, "Tb_org_Tas1_2_2s.nc", "tb", arr)
 
 # Step 4: arr to RGB images -> Tier01
 
@@ -107,9 +118,11 @@ writeNetCDF(outpath_tb_stable, "Tb_stab_cut_red_20Hz.nc", "Tb", tb_stab_lst[0])
 
 arr = readnetcdftoarr(outpath_tb_stable+"Tb_stab_cut_red_20Hz.nc")
 
-arr = arr+18.6
+arr = arr*10
+arr = arr +186
+arr = arr/10
 arr = np.round(arr,2)
-writeNetCDF(outpath_tb_stable, "Tb_stab_cut_red_20Hz_test.nc", "Tb", arr)
+writeNetCDF("/mnt/Seagate_Drive1/out_test/", "Tb_stab_cut_red_20Hz_test.nc", "Tb", arr)
   
 
 

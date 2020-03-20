@@ -30,7 +30,7 @@ import skimage
 
 ### USER INPUT ###
 
-experiment = "pre_fire_"
+experiment = "T1"
 
 
 
@@ -45,7 +45,9 @@ if experiment == "T0":
 elif experiment == "T1":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
-    mean_time = 5
+    mean_time = 3
+    subsample = 0
+    hard_subsample = False
 elif experiment == "T120Hz":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub20s_py_virdris_20Hz.nc','r')
@@ -63,7 +65,7 @@ elif experiment == "pre_fire_":
 
 
 
-tb = file.get("Tb")
+tb = file.get("Tb_pertub")
 tb = np.array(tb)
 
 
@@ -85,20 +87,11 @@ if mean_time != 0:
 
 
 
-ret_lst = randomize_find_interval(data = tb,rec_freq = 3)
+ret_lst = randomize_find_interval(data = tb,rec_freq = 1)
 
 
 
 
-np.mean(list(zip(*ret_lst[2]))[0])
-np.mean(list(zip(*ret_lst[2]))[1])
-
-ret_lst[1]
-
-
-
-pixel = tb[:,150,150]
-len(pixel)
 
 
 
@@ -109,7 +102,7 @@ with open(datapath+"Tb_stab_cut_red_3Hz_hardsubsample_"+str(hard_subsample)+"pix
 
 
 
-pertub = create_tst_pertubations_mm(tb,360)
+#pertub = create_tst_pertubations_mm(tb,360)
 #writeNetCDF(datapath, "Tb_stab_cut_red_3Hz_120s_meantime_0_hardsubsample_"+str(hard_subsample)+"_pertub.nc", "Tb_pertub", pertub)
 
 
@@ -120,7 +113,7 @@ pertub = create_tst_pertubations_mm(tb,360)
 
 method = "greyscale"
 my_dpi = 300
-time_interval = int(ret_lst[0])*3
+time_interval = 8#int(ret_lst[0])
 
 
 ws=16
@@ -137,7 +130,7 @@ if not os.path.exists(outpath):
         
 print(outpath)
 
-
+pertub = tb
 
 for i in range(0, len(pertub)-time_interval):
     
