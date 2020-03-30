@@ -67,7 +67,7 @@ elif experiment == "BTT":
     datapath = "/mnt/Seagate_Drive1/BTT_Turf/"
     outpath = datapath
     tb = np.load(datapath+'Telops_npy/3.npy')
-    fs = 20
+    fs = 60
 
 
 if not os.path.exists(outpath):

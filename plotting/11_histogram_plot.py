@@ -10,6 +10,49 @@ from matplotlib import pyplot as plt
 import numpy as np
 import h5py
 
+from functions.TST_fun import create_tst_pertubations_mm
+
+
+from scipy.stats import kurtosis, skew
+
+file = h5py.File("/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/Tb_stab_cut_red_20Hz.nc",'r')
+
+tb20hz = file.get("Tb")
+
+c = np.array(tb20hz)
+
+tb2hz = tb20hz[1::10]
+
+
+
+tb_2hz_pertub = create_tst_pertubations_mm(tb2hz)
+
+
+
+tb_2hz_pertub_cut = tb_2hz_pertub[:,50:150,50:150]
+
+tb_2hz_pertub_cut[1]
+
+
+tb_2hz_pertub_cut
+plt.imshow(tb_2hz_pertub_cut[1])
+np.min(tb_2hz_pertub_cut)
+breaks=np.arange(-4, 4, 0.05).tolist()
+
+
+skewness_lst = []
+
+for i in range(0,len(tb_2hz_pertub_cut)):
+
+    act_skew = skew(tb_2hz_pertub_cut[i].reshape(tb_2hz_pertub_cut[i].shape[0]*tb_2hz_pertub_cut[i].shape[1]))
+    skewness_lst.append(act_skew)
+
+np.mean(skewness_lst)
+
+plt.hist(tb_2hz_pertub_cut.reshape(tb_2hz_pertub_cut.shape[0]*tb_2hz_pertub_cut.shape[1]*tb_2hz_pertub_cut.shape[2]), bins=breaks)
+
+skew(tb_2hz_pertub_cut.reshape(tb_2hz_pertub_cut.shape[0]*tb_2hz_pertub_cut.shape[1]*tb_2hz_pertub_cut.shape[2]))
+
 
 datapath = "/home/benjamin/Met_ParametersTST/T0/data/test_tiv/"
 out_fld_name = "streamplot/"
@@ -24,7 +67,15 @@ topo2 = "/home/benjamin/Met_ParametersTST/T0/data/test_tiv/Tb_pertub_cut_400-160
 
 
 
-file_v1 = h5py.File(v_new_file,'r')
+
+
+
+
+
+
+
+
+
 file_u1 = h5py.File(u_new_file,'r')
 file_topo = h5py.File(topo1,'r')
 topo1 = file_topo.get("Tb_pertub")
