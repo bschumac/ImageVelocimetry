@@ -43,10 +43,10 @@ if experiment == "T0":
     datapath = "/home/benjamin/Met_ParametersTST/T0/data/"
     file = h5py.File(datapath+'Tb_stab_rect_pertub_py.nc','r')
 elif experiment == "T1":
-    datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
-    file = h5py.File(datapath+'Tb_stab_pertub_py_virdris.nc','r')
-    mean_time = 3
-    subsample = 0
+    datapath = "/home/benjamin/Met_ParametersTST/T1/Tier02/12012019/Optris_data/"
+    file = h5py.File(datapath+'Tb_stab_cut_red_20Hz.nc','r')
+    mean_time = 0
+    subsample = 10 
     hard_subsample = False
 elif experiment == "T120Hz":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
@@ -65,7 +65,7 @@ elif experiment == "pre_fire_":
 
 
 
-tb = file.get("Tb_pertub")
+tb = file.get("Tb")
 tb = np.array(tb)
 
 
@@ -81,13 +81,16 @@ elif subsample != 0:
     tb = create_tst_subsample_mean(tb, subsample)
     
 
+tb = create_tst_pertubations_mm(tb)
+
+
 if mean_time != 0:
     tb = create_tst_mean(tb,mean_time) 
 
 
 
 
-ret_lst = randomize_find_interval(data = tb,rec_freq = 1)
+ret_lst = randomize_find_interval(data = tb,rec_freq = 2)
 
 
 
@@ -95,9 +98,9 @@ ret_lst = randomize_find_interval(data = tb,rec_freq = 1)
 
 
 
-with open(datapath+"Tb_stab_cut_red_3Hz_hardsubsample_"+str(hard_subsample)+"pixel.txt", 'w') as f:
-    for item in pixel:
-        f.write("%s\n" % item)
+#with open(datapath+"Tb_stab_cut_red_3Hz_hardsubsample_"+str(hard_subsample)+"pixel.txt", 'w') as f:
+#    for item in pixel:
+#        f.write("%s\n" % item)
 
 
 
@@ -113,13 +116,13 @@ with open(datapath+"Tb_stab_cut_red_3Hz_hardsubsample_"+str(hard_subsample)+"pix
 
 method = "greyscale"
 my_dpi = 300
-time_interval = 8#int(ret_lst[0])
+time_interval = int(ret_lst[0])
 
 
 ws=16
 ol = 15
 sa = 32
-olsa = 28
+olsa = 30
 
 
 outpath = (datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
