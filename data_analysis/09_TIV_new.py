@@ -62,9 +62,6 @@ elif experiment == "pre_fire_":
     hard_subsample = False
     
 
-
-
-
 tb = file.get("Tb")
 tb = np.array(tb)
 
