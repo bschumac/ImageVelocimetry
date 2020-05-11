@@ -11,11 +11,11 @@ import multiprocessing
 from skimage.util.dtype import dtype_range
 from scipy.signal import convolve2d
 from numpy import log
-from functions.openpiv_fun import *
+from openpiv_fun import *
 import h5py
 from statistics import mode 
 from collections import Counter
-from functions.hht import hht
+from hht import hht
 import copy
 
 
