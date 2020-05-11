@@ -30,7 +30,7 @@ import skimage
 
 ### USER INPUT ###
 
-experiment = "T1"
+experiment = "T2"
 
 
 
@@ -48,6 +48,17 @@ elif experiment == "T1":
     mean_time = 0
     subsample = 10 
     hard_subsample = False
+
+elif experiment == "T2":
+    datapath = "/mnt/Seagate_Drive1/TURF-T2/Tier02/Optris_data/Flight03/"
+    outpath= "/mnt/Seagate_Drive1/TURF-T2/Tier03/Optris_data/Flight03/"
+    file = h5py.File(datapath+'Tb_stab_2Hz.nc','r')
+    mean_time = 0
+    subsample = 0 
+    hard_subsample = False
+
+
+
 elif experiment == "T120Hz":
     datapath = "/home/benjamin/Met_ParametersTST/T1/Tier03/12012019/Optris_data/Flight03_O80_1616/"
     file = h5py.File(datapath+'Tb_stab_pertub20s_py_virdris_20Hz.nc','r')
@@ -78,7 +89,7 @@ elif subsample != 0:
     tb = create_tst_subsample_mean(tb, subsample)
     
 
-tb = create_tst_pertubations_mm(tb)
+pertub = create_tst_pertubations_mm(tb)
 
 
 if mean_time != 0:
@@ -118,11 +129,11 @@ time_interval = int(ret_lst[0])
 
 ws=16
 ol = 15
-sa = 32
-olsa = 30
+sa = 48
+olsa = 40
 
 
-outpath = (datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
+outpath = (outpath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
 str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"_subsample_"+str(subsample)+"_hard_subsample_"+str(hard_subsample)+"/")
 
 if not os.path.exists(outpath):
@@ -130,7 +141,7 @@ if not os.path.exists(outpath):
         
 print(outpath)
 
-pertub = tb
+#pertub = tb
 
 for i in range(0, len(pertub)-time_interval):
     
