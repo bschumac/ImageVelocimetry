@@ -340,20 +340,33 @@ def randomize_find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/
         The found most occuring and powerful period, and the list which was used to calculate this
     
     """
-          
+    masked_boo = True     
     for i in range(0,11):
-        rand_x = np.round(np.random.rand(),2)
-        rand_y = np.round(np.random.rand(),2)
+        while masked_boo:
+            rand_x = np.round(np.random.rand(),2)
+            rand_y = np.round(np.random.rand(),2)
+            
+            x = np.round(50+(225-50)*rand_x)
+            y = np.round(50+((225-50)*rand_y))
+            
+            if plot_hht:
+                print(x)
+                print(y)
+            
+            
         
-        x = np.round(100+(225-100)*rand_x)
-        y = np.round(100+((225-100)*rand_y))
-        
-        if plot_hht:
-            print(x)
-            print(y)
         #print(data.shape)
-        pixel = data[:,int(x),int(y)]
+            pixel = data[:,int(x),int(y)]
+            
+            if np.isnan(np.sum(pixel)):
+                masked_boo = True
+            else:
+                masked_boo = False
+                
+                
+            
         #print(data.shape)
+            
         
         act_interval1 = find_interval(pixel, rec_freq, imf_no = 1)
         act_interval2 = find_interval(pixel, rec_freq, imf_no = 2)

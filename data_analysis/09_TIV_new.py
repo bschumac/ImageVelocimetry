@@ -15,7 +15,7 @@ from matplotlib import colors, cm
 import progressbar
 from joblib import Parallel, delayed
 import multiprocessing
-from functions.TST_fun import *
+from TST_fun import *
 from scipy import stats
 import datetime
 from math import sqrt
