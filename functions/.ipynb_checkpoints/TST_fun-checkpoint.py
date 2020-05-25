@@ -26,6 +26,53 @@ import gc
 from PIL import Image
 
 
+from scipy import interpolate
+
+def interpolate_nan(arr):
+    """
+    Interpolate pixels of missing data within a 3d numpy array: 1st dimension is time.
+    Parameters
+    ----------
+    arr : np.ndarray
+        3d array containing data (time, x,y)
+    Returns
+    -------
+    
+    out_array : np.ndarray
+        3d array with interpolated data
+    """
+    
+    out_array = np.empty(arr.shape)
+    bar = progressbar.ProgressBar(maxval=arr.shape[0], widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    for i in range(0,len(arr)):
+        layer = arr[i]
+        if np.sum(np.isnan(layer))!=0:
+            x = np.arange(0, layer.shape[1])
+            y = np.arange(0, layer.shape[0])
+            #mask invalid values
+            layer_masked = np.ma.masked_invalid(layer)
+
+            xx, yy = np.meshgrid(x, y)
+            ##get only the valid values
+            x1 = xx[~layer_masked.mask]
+            y1 = yy[~layer_masked.mask]
+            newarr = layer_masked[~layer_masked.mask]
+
+            GD1 = interpolate.griddata((x1, y1), newarr.ravel(),
+                                      (xx, yy),
+                                         method='cubic')
+            out_array[i] = GD1
+        else:
+            out_array[i] = layer
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+    bar.finish()
+    return(out_array)
+
+
+
 def to_npy_info(dirname, dtype, chunks, axis):
     with open(os.path.join(dirname, 'info'), 'wb') as f:
         pickle.dump({'chunks': chunks, 'dtype': dtype, 'axis': axis}, f)
