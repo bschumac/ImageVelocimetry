@@ -1,12 +1,10 @@
 import numpy as np
 from math import acos, degrees, log
-
-def TCcalcdistangle(TC, base_TC, x = TCx, y = TCy, prev_angle=0, pix_resolution = 0.2):    
+import pandas as pd
+def TCcalcdistangle(TC, base_TC, x, y, prev_angle=0, pix_resolution = 0.2):    
 #base_TC = 2
 #TC = 5
 
-    x = TCx
-    y = TCy
     WD = 0
     distance = np.sqrt(np.square(x[base_TC-1]-x[TC-1])+ np.square(y[base_TC-1]-y[TC-1]))
     if (y[base_TC-1]-y[TC-1]) == 0:
@@ -39,7 +37,7 @@ def TCcalcdistangle(TC, base_TC, x = TCx, y = TCy, prev_angle=0, pix_resolution 
 
 
 
-def correlateTC(base_TC, TCs_signal, min_corr_time, max_corr_time, TC_nans = [1,12] , numberof_TCs = 12, subsamp_feq = 10, signal_len_s = 1 ):
+def correlateTC(base_TC, TCs_signal, min_corr_time, max_corr_time, TCx, TCy, TC_nans = [1,12] , numberof_TCs = 12, subsamp_feq = 10, signal_len_s = 1 ):
     """
     Calculates wind speed, wind direction from TC array based on signal correlation 
     
@@ -207,51 +205,51 @@ def correlateTC(base_TC, TCs_signal, min_corr_time, max_corr_time, TC_nans = [1,
         full_corr_max_lst.append(max_corrval)
         if picked_TC == 12 :
             corr_time = corr_lst_TC12.index(max_corrval)
-            distance, WD = TCcalcdistangle(12,base_TC)
+            distance, WD = TCcalcdistangle(12,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         if picked_TC == 11:
             corr_time = corr_lst_TC11.index(max_corrval)
-            distance, WD = TCcalcdistangle(11,base_TC)
+            distance, WD = TCcalcdistangle(11,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 10:
             corr_time = corr_lst_TC10.index(max_corrval)
-            distance, WD = TCcalcdistangle(10,base_TC)
+            distance, WD = TCcalcdistangle(10,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 9:
             corr_time = corr_lst_TC9.index(max_corrval)
-            distance, WD = TCcalcdistangle(9,base_TC)
+            distance, WD = TCcalcdistangle(9,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 8:
             corr_time = corr_lst_TC8.index(max_corrval)
-            distance, WD = TCcalcdistangle(8,base_TC)
+            distance, WD = TCcalcdistangle(8,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 7:
             corr_time = corr_lst_TC7.index(max_corrval)
-            distance, WD = TCcalcdistangle(7,base_TC)
+            distance, WD = TCcalcdistangle(7,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)    
         elif picked_TC == 6:
             corr_time = corr_lst_TC6.index(max_corrval)
-            distance, WD = TCcalcdistangle(6,base_TC)
+            distance, WD = TCcalcdistangle(6,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 5:
             corr_time = corr_lst_TC5.index(max_corrval)
-            distance, WD = TCcalcdistangle(5,base_TC)
+            distance, WD = TCcalcdistangle(5,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 4:
             corr_time = corr_lst_TC4.index(max_corrval)
-            distance, WD = TCcalcdistangle(4,base_TC)
+            distance, WD = TCcalcdistangle(4,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 3:
             corr_time = corr_lst_TC3.index(max_corrval)
-            distance, WD = TCcalcdistangle(3,base_TC)
+            distance, WD = TCcalcdistangle(3,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq) 
         elif picked_TC == 2:
             corr_time = corr_lst_TC2.index(max_corrval)
-            distance, WD = TCcalcdistangle(2,base_TC)
+            distance, WD = TCcalcdistangle(2,base_TC,x=TCx,y=TCy)
             WS = distance/(corr_time/subsamp_feq)
         elif picked_TC == 1:
             corr_time = corr_lst_TC1.index(max_corrval)
-            distance, WD = TCcalcdistangle(1,base_TC)
+            distance, WD = TCcalcdistangle(1,base_TC,x=TCx,y=TCy)
             #print(distance)
             WS = distance/(corr_time/subsamp_feq) 
             
