@@ -194,21 +194,6 @@ Parallel(n_jobs=6)(delayed(runATIV)(tb=tb, time_interval=time_interval, mean_tim
             subsample = subsample , hard_subsample = hard_subsample, pertubtime = time, set_len = None)for time in time_lst)
 
 
-Parallel(n_jobs=num_cores)(delayed(processInput)(n, pertub, iterx = max_displacement+inter_window_size -1,itery = max_displacement+inter_window_size -1 , maxval = 198, ttest= True) for n in range(begin_value_images-begin_value_images,end_value_images-begin_value_images-1))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 from functions.Lucas_Kanade import *
 
