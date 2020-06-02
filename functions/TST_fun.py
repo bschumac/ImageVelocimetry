@@ -272,7 +272,7 @@ def find_interval(signal, fs, imf_no = 1):
         The found most powerful interval in float. Needs rounding to the next int.
     
     """
-    eemd = EEMD(parallel=False)
+    eemd = EEMD()
     imfs = eemd.eemd(signal)
     imf = imfs[imf_no-1,:]        
     
