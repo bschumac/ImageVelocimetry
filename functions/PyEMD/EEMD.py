@@ -184,7 +184,7 @@ class EEMD:
         self.E_IMF = np.zeros((max_imfNo, N))
         for IMFs in all_IMFs:
             self.E_IMF[:IMFs.shape[0]] += IMFs
-
+        self.pool.close()
         return self.E_IMF/self.trials
 
     def _trial_update(self, trial):
