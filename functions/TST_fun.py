@@ -145,7 +145,7 @@ def create_tst_subsample_mean(array, size=9):
     array = array[0:cut_to]
     split_size = len(array)/size
     a_split = np.array_split(array,split_size)
-    a_split_avg = np.array([np.mean(arr,0) for arr in a_split])
+    a_split_avg = np.array([np.nanmean(arr,0) for arr in a_split])
     return(a_split_avg)
     
 
@@ -210,6 +210,7 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
                 
     bar.finish()
     return(resultarr)
+
 
 
 

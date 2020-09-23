@@ -145,7 +145,7 @@ def create_tst_subsample_mean(array, size=9):
     array = array[0:cut_to]
     split_size = len(array)/size
     a_split = np.array_split(array,split_size)
-    a_split_avg = np.array([np.mean(arr,0) for arr in a_split])
+    a_split_avg = np.array([np.nanmean(arr,0) for arr in a_split])
     return(a_split_avg)
     
 
@@ -210,6 +210,7 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
                 
     bar.finish()
     return(resultarr)
+
 
 
 
@@ -340,20 +341,33 @@ def randomize_find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/
         The found most occuring and powerful period, and the list which was used to calculate this
     
     """
-          
+    masked_boo = True     
     for i in range(0,11):
-        rand_x = np.round(np.random.rand(),2)
-        rand_y = np.round(np.random.rand(),2)
+        while masked_boo:
+            rand_x = np.round(np.random.rand(),2)
+            rand_y = np.round(np.random.rand(),2)
+            
+            x = np.round(50+(225-50)*rand_x)
+            y = np.round(50+((225-50)*rand_y))
+            
+            if plot_hht:
+                print(x)
+                print(y)
+            
+            
         
-        x = np.round(100+(225-100)*rand_x)
-        y = np.round(100+((225-100)*rand_y))
-        
-        if plot_hht:
-            print(x)
-            print(y)
         #print(data.shape)
-        pixel = data[:,int(x),int(y)]
+            pixel = data[:,int(x),int(y)]
+            
+            if np.isnan(np.sum(pixel)):
+                masked_boo = True
+            else:
+                masked_boo = False
+                
+                
+            
         #print(data.shape)
+            
         
         act_interval1 = find_interval(pixel, rec_freq, imf_no = 1)
         act_interval2 = find_interval(pixel, rec_freq, imf_no = 2)
