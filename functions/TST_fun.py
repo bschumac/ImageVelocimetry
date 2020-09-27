@@ -185,7 +185,7 @@ def create_tst_mean(array, moving_mean_size = 60):
 
 
 def create_tst_pertubations_mm(array, moving_mean_size = 60):
-    # creates a moving mean around each layer in array   
+    # creates a temporal moving mean around each layer in array   
 
     resultarr = np.zeros(np.shape(array))
     bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
@@ -213,6 +213,39 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
 
 
 
+
+
+def create_tst_pertubations_spmm(array, moving_mean_size = 60):
+    # creates a spatiotemporal moving mean around each layer in array   
+
+    resultarr = np.zeros(np.shape(array))
+    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    arr_spmean = np.mean(array, axis=(1,2))
+    arr_spmean = arr_spmean[:,np.newaxis,np.newaxis]
+    arr_spperturb = np.ones(array.shape, dtype="int")
+    arr_spperturb = arr_spperturb*arr_spmean
+    array = array-arr_spperturb 
+    for i in range(0,len(array)):
+        # moving mean array = actarray:
+        if i == 0:
+            actarray = array[0:moving_mean_size*2+1]
+        elif i != 0 and i != len(array) and i-(moving_mean_size)>= 0 and i+(moving_mean_size)<= len(array)-1:
+            actarray = array[int(i-moving_mean_size):int(i+moving_mean_size)+1]
+        elif i-(moving_mean_size)<= 0:
+            actarray = array[0:moving_mean_size*2+1]   
+        elif i+(moving_mean_size)>= len(array):
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]        
+        if i == len(array)-1:
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
+        
+        resultarr[i] = array[i]-np.mean(actarray, axis=0)
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+                
+    bar.finish()
+    return(resultarr)
 
 
 
