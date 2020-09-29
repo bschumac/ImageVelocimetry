@@ -99,7 +99,10 @@ elif experiment == "namtex2":
     start_img = 0
     end_img = 0
 
-
+elif experiment == "fire_2019_p1":
+    rec_freq = 80
+    datapath_csv = "/data/FIRE/Darfield_2019/Tier01/O80_220319_high_P1/"
+    outpath_tb_org = "/data/FIRE/Darfield_2019/Tier01/"
 
 
 
@@ -147,11 +150,11 @@ elif experiment == "namtex2":
 
 # Step 2: Read files to arr
 
-#fls = os.listdir(datapath_csv)
-#arr = readcsvtoarr(datapath_csv_files=datapath_csv,start_img=start_img,end_img=end_img,interval=int(rec_freq/out_freq))
+fls = os.listdir(datapath_csv)
+arr = readcsvtoarr(datapath_csv_files=datapath_csv,start_img=start_img,end_img=end_img,interval=int(rec_freq/out_freq))
 
 
-arr = readnetcdftoarr(outpath_tb_org+"E10_Tb_VignStep.nc", var = 'Tb')
+#arr = readnetcdftoarr(outpath_tb_org+"E10_Tb_VignStep.nc", var = 'Tb')
 
 
 
