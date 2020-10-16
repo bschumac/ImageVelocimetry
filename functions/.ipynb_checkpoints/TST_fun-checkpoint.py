@@ -17,7 +17,7 @@ from statistics import mode
 from collections import Counter
 from hht import hht
 import copy
-
+import pandas as pd
 
 from PyEMD.EEMD import *
 import math
@@ -140,6 +140,42 @@ def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
     return(org_data)
 
 
+
+def readcsvtoarr2(datapath_csv_files,start_img=0,end_img=0,interval=1, fls = []):
+    
+    if len(fls) == 0:
+        fls = os.listdir(datapath_csv_files)
+        fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
+        
+    if end_img == 0:
+        end_img = len(fls)-1
+    
+    counter = 0
+    
+    for i in range(start_img,end_img, interval): 
+        if counter%100 == 0:
+            print(str(counter)+" of "+str((end_img-start_img)/interval))
+        #my_data = np.genfromtxt(datapath_csv_files+fls[i], delimiter=',', skip_header=1)
+        #my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+        try:
+            df = pd.read_csv(datapath_csv_files+fls[i],skiprows=1)
+            my_data = df.values
+            my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+            if counter == 0:
+                org_data = copy.copy(my_data)
+            else:
+                org_data = np.append(org_data,my_data,0)
+            #org_data[counter] = my_data
+        except:
+            pass
+        counter+=1
+    
+    return(org_data)
+    
+    
+
+
+
 def create_tst_subsample_mean(array, size=9):
     cut_to = int(np.floor(len(array)/size)*size)
     array = array[0:cut_to]
@@ -185,7 +221,7 @@ def create_tst_mean(array, moving_mean_size = 60):
 
 
 def create_tst_pertubations_mm(array, moving_mean_size = 60):
-    # creates a moving mean around each layer in array   
+    # creates a temporal moving mean around each layer in array   
 
     resultarr = np.zeros(np.shape(array))
     bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
@@ -213,6 +249,39 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
 
 
 
+
+
+def create_tst_pertubations_spmm(array, moving_mean_size = 60):
+    # creates a spatiotemporal moving mean around each layer in array   
+
+    resultarr = np.zeros(np.shape(array))
+    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    arr_spmean = np.mean(array, axis=(1,2))
+    arr_spmean = arr_spmean[:,np.newaxis,np.newaxis]
+    arr_spperturb = np.ones(array.shape, dtype="int")
+    arr_spperturb = arr_spperturb*arr_spmean
+    array = array-arr_spperturb 
+    for i in range(0,len(array)):
+        # moving mean array = actarray:
+        if i == 0:
+            actarray = array[0:moving_mean_size*2+1]
+        elif i != 0 and i != len(array) and i-(moving_mean_size)>= 0 and i+(moving_mean_size)<= len(array)-1:
+            actarray = array[int(i-moving_mean_size):int(i+moving_mean_size)+1]
+        elif i-(moving_mean_size)<= 0:
+            actarray = array[0:moving_mean_size*2+1]   
+        elif i+(moving_mean_size)>= len(array):
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]        
+        if i == len(array)-1:
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
+        
+        resultarr[i] = array[i]-np.mean(actarray, axis=0)
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+                
+    bar.finish()
+    return(resultarr)
 
 
 

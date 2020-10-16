@@ -17,7 +17,7 @@ from statistics import mode
 from collections import Counter
 from hht import hht
 import copy
-
+import pandas as pd
 
 from PyEMD.EEMD import *
 import math
@@ -138,6 +138,42 @@ def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
         counter+=1
     
     return(org_data)
+
+
+
+def readcsvtoarr2(datapath_csv_files,start_img=0,end_img=0,interval=1, fls = []):
+    
+    if len(fls) == 0:
+        fls = os.listdir(datapath_csv_files)
+        fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
+        
+    if end_img == 0:
+        end_img = len(fls)-1
+    
+    counter = 0
+    
+    for i in range(start_img,end_img, interval): 
+        if counter%100 == 0:
+            print(str(counter)+" of "+str((end_img-start_img)/interval))
+        #my_data = np.genfromtxt(datapath_csv_files+fls[i], delimiter=',', skip_header=1)
+        #my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+        try:
+            df = pd.read_csv(datapath_csv_files+fls[i],skiprows=1)
+            my_data = df.values
+            my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+            if counter == 0:
+                org_data = copy.copy(my_data)
+            else:
+                org_data = np.append(org_data,my_data,0)
+            #org_data[counter] = my_data
+        except:
+            pass
+        counter+=1
+    
+    return(org_data)
+    
+    
+
 
 
 def create_tst_subsample_mean(array, size=9):
