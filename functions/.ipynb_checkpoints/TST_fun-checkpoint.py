@@ -28,6 +28,17 @@ from PIL import Image
 
 from scipy import interpolate
 
+
+
+def outlier_removal1D(arr, num_sd):
+    
+    mean = np.nanmean(arr, axis=0)
+    sd = np.nanstd(arr, axis=0)
+    
+    final_list = [x for x in arr if (x > mean - num_sd * sd)]
+    return(final_list)
+    
+
 def interpolate_nan(arr):
     """
     Interpolate pixels of missing data within a 3d numpy array: 1st dimension is time.
