@@ -30,7 +30,7 @@ import skimage
 
 ### USER INPUT ###
 
-experiment = "T1"
+experiment = "namtex"
 
 
 
@@ -72,6 +72,16 @@ elif experiment == "pre_fire_":
     subsample = 9
     experiment = experiment+str(int(rec_freq/subsample))+"Hz"
     hard_subsample = False
+
+elif experiment == "namtex":
+    rec_freq = 9
+    datapath = "/mnt/Seagate_Drive1/NamTEX/Tier02/"
+    file = h5py.File(datapath+'9Hz_planeCorr.nc')
+    mean_time = 0
+    subsample = 9
+    experiment = experiment+str(int(rec_freq/subsample))+"Hz"
+    hard_subsample = False
+
     
 
 tb = file.get("Tb")
@@ -93,7 +103,7 @@ if mean_time != 0:
     tb = create_tst_mean(tb,mean_time) 
 
 
-ret_lst = randomize_find_interval(data = tb,rec_freq = 2)
+ret_lst = randomize_find_interval(data = tb,rec_freq = 1)
 
 
 
@@ -108,8 +118,8 @@ ret_lst = randomize_find_interval(data = tb,rec_freq = 2)
 
 
 
-#pertub = create_tst_pertubations_mm(tb,360)
-#writeNetCDF(datapath, "Tb_stab_cut_red_3Hz_120s_meantime_0_hardsubsample_"+str(hard_subsample)+"_pertub.nc", "Tb_pertub", pertub)
+#pertub = create_tst_pertubations_mm(tb,120)
+#writeNetCDF(datapath, "Tb120"+str(hard_subsample)+"_pertub.nc", "Tb_pertub", pertub)
 
 
 #def runATIV (tb, time_interval, mean_time, outpath, ws, ol, sa, olsa, subsample, hard_subsample, pertubtime, set_len = None, method= "greyscale", my_dpi=300):
@@ -121,15 +131,15 @@ time_interval = int(ret_lst[0])
 ws=16
 ol = 15
 sa = 32
-olsa = 30
+olsa = 28
 method= "greyscale"
 
 
-
+#tb = np.where(tb < 35, tb, 0)
   
 pertub = create_tst_pertubations_mm(tb,pertubtime)
 
-outpath = (outpath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
+outpath = (datapath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
 str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"_subsample_"+str(subsample)+"_hard_subsample_"+str(hard_subsample)+"_pertubtime"+str(pertubtime)+"/")
 
 if not os.path.exists(outpath):
@@ -140,24 +150,41 @@ print(outpath)
 
 
 len_pertub = len(pertub)
-set_len = 60
+set_len = 20
 if set_len is not None:
     len_pertub = set_len
     
 
-#for i in range(0, len_pertub-time_interval):
-    
-    #print(i)
-def runTIVparallel(i):   
-
+for i in range(60, 90-time_interval):
+    #i = 60
+    print(i)
+#def runTIVparallel(i):   
+#i = 20
     u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
-                                 search_area_size_x=sa, corr_method=method, mean_analysis = False, std_analysis = False, std_threshold = 10)
-    #x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
-    
-    u = remove_outliers(u, filter_size=3, sigma=2)
-    v = remove_outliers(v, filter_size=3, sigma=2)
+                             search_area_size_x=sa, corr_method=method, mean_analysis = False, std_analysis = False, std_threshold = 10)
+    x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )  
 
-    return(u,v)
+    
+    
+    plt.imshow(pertub[i], vmin = -1, vmax=1)
+    plt.colorbar()
+    plt.quiver(x,y,np.flipud(np.round(u,2)),np.flipud(np.round(v,2)))
+    plt.savefig(outpath+'{:04d}'.format(i)+".png",dpi=300,bbox_inches='tight',pad_inches = 0,transparent=False)
+    plt.close()
+    v= np.reshape(v,((1,v.shape[0],v.shape[1])))
+    u= np.reshape(u,((1,u.shape[0],u.shape[1])))
+    if i == 60:
+        uas =  copy.copy(u)
+        vas =  copy.copy(v)
+
+    else:
+        uas = np.append(uas,u,0)
+        vas = np.append(vas,v,0)    
+
+u = remove_outliers(u, filter_size=3, sigma=2)
+v = remove_outliers(v, filter_size=3, sigma=2)
+
+#    return(u,v)
 
 
 
@@ -165,8 +192,12 @@ def runTIVparallel(i):
     
 
 from joblib import Parallel, delayed
-out_lst = Parallel(n_jobs=-1)(delayed(runTIVparallel)(i) for i in range(0, len_pertub-time_interval))
-test = np.array(out_lst)
+out_lst = Parallel(n_jobs=6)(delayed(runTIVparallel)(i) for i in range(0, len_pertub-time_interval))
+out_uv = np.array(out_lst)
+uas = out_uv[:,0,:,:]
+vas = out_uv[:,1,:,:]
+
+plt.imshow(out_lst[15][0], vmin=-.5, vmax=.5)
 
 
 
@@ -194,7 +225,7 @@ for i in range(0, len(pertub)-time_interval):
     
     v= np.reshape(v,((1,v.shape[0],v.shape[1])))
     u= np.reshape(u,((1,u.shape[0],u.shape[1])))
-
+    
     if i == 0:
         uas =  copy.copy(u)
         vas =  copy.copy(v)
@@ -218,10 +249,64 @@ writeNetCDF(outpath, 'Tb_stab_pertub_mean.netcdf', 'Tb_pertub20Hz_means', pertub
 
 
 
-
-
-
-
+#
+#def runATIV (tb, time_interval, mean_time, outpath, ws, ol, sa, olsa, subsample, hard_subsample, pertubtime, set_len = None, method= "greyscale", my_dpi=300):
+#    
+#    pertub = create_tst_pertubations_mm(tb,pertubtime)
+#    
+#    outpath = (outpath+"tiv/experiment_"+experiment+"_meantime_"+str(mean_time)+"_interval_"+str(time_interval)+"_method_"+method+"_WS_"+
+#    str(ws)+"_OL_"+str(ol)+"_SA_"+str(sa)+"_SAOL_"+str(olsa)+"_subsample_"+str(subsample)+"_hard_subsample_"+str(hard_subsample)+"_pertubtime"+str(pertubtime)+"/")
+#    
+#    if not os.path.exists(outpath):
+#        os.makedirs(outpath)
+#            
+#    print(outpath)
+#
+#
+#
+#
+#    len_pertub = len(pertub)
+#    if set_len is not None:
+#        len_pertub = set_len
+#        
+#    
+#    for i in range(0, len_pertub-time_interval):
+#        
+#        #print(i)
+#        
+#        
+#        u, v= window_correlation_tiv(frame_a=pertub[i], frame_b=pertub[i+time_interval], window_size_x=ws, overlap_window=ol, overlap_search_area=olsa, 
+#                                     search_area_size_x=sa, corr_method=method, mean_analysis = False, std_analysis = False, std_threshold = 10)
+#        x, y = get_coordinates( image_size=pertub[i].shape, window_size=sa, overlap=olsa )      
+#        
+#        #u = remove_outliers(u,filter_size=9, sigma=1)
+#        #v = remove_outliers(v, filter_size=9, sigma=1)
+#        
+#        
+#        #plt.imshow(pertub[i], vmin = -1, vmax=1)
+#        #plt.colorbar()
+#        #plt.quiver(x,y,np.flipud(np.round(u,2)),np.flipud(np.round(v,2)))
+#        #plt.savefig(outpath+'{:04d}'.format(i)+".png",dpi=my_dpi,bbox_inches='tight',pad_inches = 0,transparent=False)
+#        #plt.close()
+#        
+#        
+#        #plt.imshow(u)
+#        
+#        v= np.reshape(v,((1,v.shape[0],v.shape[1])))
+#        u= np.reshape(u,((1,u.shape[0],u.shape[1])))
+#    
+#        if i == 0:
+#            uas =  copy.copy(u)
+#            vas =  copy.copy(v)
+#    
+#        else:
+#            uas = np.append(uas,u,0)
+#            vas = np.append(vas,v,0)
+#    writeNetCDF(outpath, 'UAS.netcdf', 'u', uas)
+#    writeNetCDF(outpath, 'VAS.netcdf', 'v', vas)
+#    return()
+#
+#
 
 
 

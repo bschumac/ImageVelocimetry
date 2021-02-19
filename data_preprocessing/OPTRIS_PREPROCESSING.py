@@ -11,10 +11,10 @@ Created on Wed Feb 19 11:31:47 2020
 
 # Step 1: Define experiment:
 
-from functions.TST_fun import *
+from TST_fun import *
 import os
 from PIL import Image
-experiment = "T2"
+experiment = "NamTex"
 
 
 if experiment == "T1":
@@ -61,14 +61,26 @@ elif experiment == "Tasman_1_2":
     start_img = 0
     end_img = 0
 
+elif experiment == "NamTex":
+    datapath_csv = "/home/benjamin/Met_ParametersTST/NamTex/Experiment01/Level01/"
+    outpath_tb_org = "/home/benjamin/Met_ParametersTST/NamTex/Experiment01/Level01/"
+    outpath_exr_unstable = "/home/benjamin/Met_ParametersTST/NamTex/Experiment01/Level01/tb_exr_unstable/"
+    outpath_exr_stable = "/home/benjamin/Met_ParametersTST/NamTex/Experiment01/Level01/tb_exr_stable/"
+    out_freq = 9
+    rec_freq = 9
+
+
 
 # Step 2: Read files to arr
 
 
 
-
-fls = os.listdir(datapath_csv)
-arr = readcsvtoarr(datapath_csv_files=datapath_csv,start_img=start_img,end_img=end_img,interval=int(rec_freq/out_freq))
+if experiment == "NamTex":
+    arr = readnetcdftoarr(datapath_csv+"E01_Tb_VignStep.nc", var = 'Tb')
+    
+else:
+    fls = os.listdir(datapath_csv)
+    arr = readcsvtoarr(datapath_csv_files=datapath_csv,start_img=start_img,end_img=end_img,interval=int(rec_freq/out_freq))
 
 
 
@@ -92,9 +104,9 @@ arr_steady = arr_steady.astype("float32")
 
 
 
-for i in range(0,len(arr)):
+for i in range(0,len(arr_steady)):
     img_rel = arr_steady[i]/np.nanmax(arr_steady[i])
-    imageio.imwrite(outpath_exr_unstable+str(i)+'.exr', img_rel)
+    imageio.imwrite(outpath_exr_unstable+str(i+1)+'.exr', img_rel)
 
 
 
@@ -134,13 +146,16 @@ plt.plot(acc_lst)
 
 # Step 7: Write out stable tb to netcdf file -> Tier03
 
-writeNetCDF(outpath_tb_org, "Tb_stab_2Hz.nc", "Tb", arr_stab)
+writeNetCDF(outpath_tb_org, "E01_Tb_stab_9Hz.nc", "Tb", arr_stab)
   
 arr_stab_pertub = create_tst_pertubations_mm(arr_stab)
 
 writeNetCDF(outpath_tb_org, "Tb_stab_pertub30s_2Hz.nc", "pertub", arr_stab_pertub)
  
+arr = readnetcdftoarr("/home/benjamin/Met_ParametersTST/NamTex/Experiment01/Level01/E01_Tb_stab_9Hz.nc", var = 'Tb')
+arr = arr[:,20:512-20,20:620]
 
+writeNetCDF("/home/benjamin/Met_ParametersTST/NamTex/Experiment01/Level01/","E01_Tb_stab_9Hz.nc", "Tb", arr)
 
 
 
