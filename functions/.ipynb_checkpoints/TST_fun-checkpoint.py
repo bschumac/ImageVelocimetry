@@ -17,7 +17,7 @@ from statistics import mode
 from collections import Counter
 from hht import hht
 import copy
-
+import pandas as pd
 
 from PyEMD.EEMD import *
 import math
@@ -27,6 +27,17 @@ from PIL import Image
 
 
 from scipy import interpolate
+
+
+
+def outlier_removal1D(arr, num_sd):
+    
+    mean = np.nanmean(arr, axis=0)
+    sd = np.nanstd(arr, axis=0)
+    
+    final_list = [x for x in arr if (x > mean - num_sd * sd)]
+    return(final_list)
+    
 
 def interpolate_nan(arr):
     """
@@ -140,12 +151,48 @@ def readcsvtoarr(datapath_csv_files,start_img=0,end_img=0,interval=1):
     return(org_data)
 
 
+
+def readcsvtoarr2(datapath_csv_files,start_img=0,end_img=0,interval=1, fls = []):
+    
+    if len(fls) == 0:
+        fls = os.listdir(datapath_csv_files)
+        fls = sorted(fls, key = lambda x: x.rsplit('.', 1)[0])
+        
+    if end_img == 0:
+        end_img = len(fls)-1
+    
+    counter = 0
+    
+    for i in range(start_img,end_img, interval): 
+        if counter%100 == 0:
+            print(str(counter)+" of "+str((end_img-start_img)/interval))
+        #my_data = np.genfromtxt(datapath_csv_files+fls[i], delimiter=',', skip_header=1)
+        #my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+        try:
+            df = pd.read_csv(datapath_csv_files+fls[i],skiprows=1)
+            my_data = df.values
+            my_data = np.reshape(my_data,(1,my_data.shape[0],my_data.shape[1]))
+            if counter == 0:
+                org_data = copy.copy(my_data)
+            else:
+                org_data = np.append(org_data,my_data,0)
+            #org_data[counter] = my_data
+        except:
+            pass
+        counter+=1
+    
+    return(org_data)
+    
+    
+
+
+
 def create_tst_subsample_mean(array, size=9):
     cut_to = int(np.floor(len(array)/size)*size)
     array = array[0:cut_to]
     split_size = len(array)/size
     a_split = np.array_split(array,split_size)
-    a_split_avg = np.array([np.mean(arr,0) for arr in a_split])
+    a_split_avg = np.array([np.nanmean(arr,0) for arr in a_split])
     return(a_split_avg)
     
 
@@ -185,7 +232,7 @@ def create_tst_mean(array, moving_mean_size = 60):
 
 
 def create_tst_pertubations_mm(array, moving_mean_size = 60):
-    # creates a moving mean around each layer in array   
+    # creates a temporal moving mean around each layer in array   
 
     resultarr = np.zeros(np.shape(array))
     bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
@@ -212,6 +259,40 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
     return(resultarr)
 
 
+
+
+
+def create_tst_pertubations_spmm(array, moving_mean_size = 60):
+    # creates a spatiotemporal moving mean around each layer in array   
+
+    resultarr = np.zeros(np.shape(array))
+    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    arr_spmean = np.mean(array, axis=(1,2))
+    arr_spmean = arr_spmean[:,np.newaxis,np.newaxis]
+    arr_spperturb = np.ones(array.shape, dtype="int")
+    arr_spperturb = arr_spperturb*arr_spmean
+    array = array-arr_spperturb 
+    for i in range(0,len(array)):
+        # moving mean array = actarray:
+        if i == 0:
+            actarray = array[0:moving_mean_size*2+1]
+        elif i != 0 and i != len(array) and i-(moving_mean_size)>= 0 and i+(moving_mean_size)<= len(array)-1:
+            actarray = array[int(i-moving_mean_size):int(i+moving_mean_size)+1]
+        elif i-(moving_mean_size)<= 0:
+            actarray = array[0:moving_mean_size*2+1]   
+        elif i+(moving_mean_size)>= len(array):
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]        
+        if i == len(array)-1:
+            actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
+        
+        resultarr[i] = array[i]-np.mean(actarray, axis=0)
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+                
+    bar.finish()
+    return(resultarr)
 
 
 
@@ -340,20 +421,33 @@ def randomize_find_interval (data,  rec_freq = 1, plot_hht = False, outpath = "/
         The found most occuring and powerful period, and the list which was used to calculate this
     
     """
-          
+    masked_boo = True     
     for i in range(0,11):
-        rand_x = np.round(np.random.rand(),2)
-        rand_y = np.round(np.random.rand(),2)
+        while masked_boo:
+            rand_x = np.round(np.random.rand(),2)
+            rand_y = np.round(np.random.rand(),2)
+            
+            x = np.round(50+(225-50)*rand_x)
+            y = np.round(50+((225-50)*rand_y))
+            
+            if plot_hht:
+                print(x)
+                print(y)
+            
+            
         
-        x = np.round(100+(225-100)*rand_x)
-        y = np.round(100+((225-100)*rand_y))
-        
-        if plot_hht:
-            print(x)
-            print(y)
         #print(data.shape)
-        pixel = data[:,int(x),int(y)]
+            pixel = data[:,int(x),int(y)]
+            
+            if np.isnan(np.sum(pixel)):
+                masked_boo = True
+            else:
+                masked_boo = False
+                
+                
+            
         #print(data.shape)
+            
         
         act_interval1 = find_interval(pixel, rec_freq, imf_no = 1)
         act_interval2 = find_interval(pixel, rec_freq, imf_no = 2)
@@ -796,7 +890,82 @@ def remove_outliers(array, filter_size=5, sigma=1.5):
 
     
     
-    
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 28 11:16:00 2019
+
+@author: benjamin.schumacher
+"""
+
+from xml.etree import cElementTree as ElementTree
+
+class XmlListConfig(list):
+    def __init__(self, aList):
+        for element in aList:
+            if element:
+                # treat like dict
+                if len(element) == 1 or element[0].tag != element[1].tag:
+                    self.append(XmlDictConfig(element))
+                # treat like list
+                elif element[0].tag == element[1].tag:
+                    self.append(XmlListConfig(element))
+            elif element.text:
+                text = element.text.strip()
+                if text:
+                    self.append(text)
+
+class XmlDictConfig(dict):
+    '''
+    Example usage:
+
+    >>> tree = ElementTree.parse('your_file.xml')
+    >>> root = tree.getroot()
+    >>> xmldict = XmlDictConfig(root)
+
+    Or, if you want to use an XML string:
+
+    >>> root = ElementTree.XML(xml_string)
+    >>> xmldict = XmlDictConfig(root)
+
+    And then use xmldict for what it is... a dict.
+    '''
+    def __init__(self, parent_element):
+        if parent_element.items():
+            self.update(dict(parent_element.items()))
+        for element in parent_element:
+            if element:
+                # treat like dict - we assume that if the first two tags
+                # in a series are different, then they are all different.
+                if len(element) == 1 or element[0].tag != element[1].tag:
+                    aDict = XmlDictConfig(element)
+                # treat like list - we assume that if the first two tags
+                # in a series are the same, then the rest are the same.
+                else:
+                    # here, we put the list in dictionary; the key is the
+                    # tag name the list elements all share in common, and
+                    # the value is the list itself 
+                    aDict = {element[0].tag: XmlListConfig(element)}
+                # if the tag has attributes, add those to the dict
+                if element.items():
+                    aDict.update(dict(element.items()))
+                self.update({element.tag: aDict})
+            # this assumes that if you've got an attribute in a tag,
+            # you won't be having any text. This may or may not be a 
+            # good idea -- time will tell. It works for the way we are
+            # currently doing XML configuration files...
+            elif element.items():
+                self.update({element.tag: dict(element.items())})
+            # finally, if there are no child tags and no attributes, extract
+            # the text
+            else:
+                self.update({element.tag: element.text})
+
+
+def xmltodict(path):
+    tree = ElementTree.parse(path)
+    root = tree.getroot()
+    xmldict = XmlDictConfig(root)
+    return(xmldict)    
 
 
  
