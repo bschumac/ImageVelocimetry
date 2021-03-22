@@ -29,6 +29,17 @@ from PIL import Image
 from scipy import interpolate
 
 
+def smooth_den(x, denx):
+
+    from scipy.ndimage.filters import uniform_filter1d
+    from scipy.interpolate import make_interp_spline, BSpline
+
+    den_x_smooth= uniform_filter1d(denx(x), size=3)
+    xnew = np.linspace(x.min(), x.max(), 300) 
+    spl = make_interp_spline(x, den_x_smooth, k=3)  # type: BSpline
+    den_x_smooth = spl(xnew)
+    return(xnew,den_x_smooth)
+
 
 def outlier_removal1D(arr, num_sd):
     
