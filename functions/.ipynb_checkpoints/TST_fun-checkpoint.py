@@ -871,9 +871,35 @@ def window_correlation_tiv(frame_a, frame_b, window_size_x, overlap_window, over
     return u, v*-1        
     
 
+def remove_outliers1D(array, sigma=5):
+    outarr = copy.copy(array)
+    arr_mean = np.nanmean(outarr)
+    arr_std = np.nanstd(outarr)
+    outarr[np.abs(outarr)>arr_mean+sigma*arr_std] = np.nan
+    
+    return(outarr)    
 
 
-def remove_outliers(array, filter_size=5, sigma=1.5):
+def interpolate_nan1D(array):
+    outarr = copy.copy(array)
+    ok = ~np.isnan(outarr)
+    xp = ok.ravel().nonzero()[0]
+    fp = array[~np.isnan(outarr)]
+    x  = np.isnan(outarr).ravel().nonzero()[0]
+
+    outarr[np.isnan(outarr)] = np.interp(x, xp, fp)
+    return(outarr)
+
+
+def wrapper_outl_interpolation(array):
+    arr_rem = remove_outliers1D(array)
+    arr_int = interpolate_nan1D(arr_rem)
+    return(arr_int.flatten())
+
+
+
+
+def remove_outliers2D(array, filter_size=5, sigma=1.5):
     returnarray = copy.copy(array)
     filter_diff = int(filter_size/2)
     #roll_arr = rolling_window(array, (window_size,window_size))
