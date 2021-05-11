@@ -210,13 +210,14 @@ def create_tst_subsample_mean(array, size=9):
 def create_tst_subsample(array, size = 9):
     return(array[1::size])
     
-def create_tst_mean(array, moving_mean_size = 60):
+def create_tst_mean(array, moving_mean_size = 60, showbar = True):
     # creates a moving mean around each layer in array   
 
     resultarr = np.zeros(np.shape(array))
-    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
-    bar.start()
-    bar_iterator = 0
+    if showbar:
+        bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+        bar.start()
+        bar_iterator = 0
     for i in range(0,len(array)):
         # moving mean array = actarray:
         if i == 0:
@@ -231,10 +232,11 @@ def create_tst_mean(array, moving_mean_size = 60):
             actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
         
         resultarr[i] = np.mean(actarray, axis=0)
-        bar.update(bar_iterator+1)
-        bar_iterator += 1
-                
-    bar.finish()
+        if showbar:
+            bar.update(bar_iterator+1)
+            bar_iterator += 1
+    if showbar:            
+        bar.finish()
     return(resultarr)
 
 
@@ -242,13 +244,14 @@ def create_tst_mean(array, moving_mean_size = 60):
 
 
 
-def create_tst_pertubations_mm(array, moving_mean_size = 60):
+def create_tst_pertubations_mm(array, moving_mean_size = 60, showbar = True):
     # creates a temporal moving mean around each layer in array   
 
     resultarr = np.zeros(np.shape(array))
-    bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
-    bar.start()
-    bar_iterator = 0
+    if showbar:
+        bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+        bar.start()
+        bar_iterator = 0
     for i in range(0,len(array)):
         # moving mean array = actarray:
         if i == 0:
@@ -263,10 +266,11 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60):
             actarray = array[len(array)-(2*moving_mean_size)-1:len(array)]
         
         resultarr[i] = array[i]-np.mean(actarray, axis=0)
-        bar.update(bar_iterator+1)
-        bar_iterator += 1
-                
-    bar.finish()
+        if showbar:
+            bar.update(bar_iterator+1)
+            bar_iterator += 1
+    if showbar:            
+        bar.finish()
     return(resultarr)
 
 
