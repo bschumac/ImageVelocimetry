@@ -115,7 +115,7 @@ def moving_window_array(array, window_size, overlap):
     shape = (int((shape[0] - window_size) / (window_size - overlap)) + 1, int(
         (shape[1] - window_size) / (window_size - overlap)) + 1, window_size, window_size)
 
-    return numpy.lib.stride_tricks.as_strided(array, strides=strides, shape=shape).reshape(-1, window_size, window_size)
+    return np.lib.stride_tricks.as_strided(array, strides=strides, shape=shape).reshape(-1, window_size, window_size)
 
 
 def find_first_peak(corr):
