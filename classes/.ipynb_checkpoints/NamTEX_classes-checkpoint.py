@@ -6,8 +6,10 @@ Created on Sat Feb 20 03:07:36 2021
 @author: benjamin
 """
 import sys
-import socket
-hostname = (socket.gethostname())
+sys.path.insert(1, '/home/UOCNT/bsc54/code/ImageVelocimetry/functions/')
+from TST_fun import *
+from openpiv_fun import moving_window_array, find_first_peak
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import datetime
@@ -15,17 +17,8 @@ import itertools
 import copy
 from scipy import fftpack
 from scipy import signal
-import pandas as pd
+from joblib import Parallel, delayed
 
-if hostname == "PHOBOS":
-    sys.path.insert(1, '/home/benjamin/Met_ParametersTST/GIT_code/code/functions/')
-    sys.path.insert(1, '/home/benjamin/Met_ParametersTST/GIT_code/code/classes/')
-else:   
-    sys.path.insert(1, '/home/rccuser/.jupyter/code/ImageVelocimetry/functions/')
-
-from TST_fun import *    
-    
-    
 class sonictower:
     def __init__(self, pathlst = [], soniclst = [], sonicheights = [], azimuth = 0):
         self.pathlst = pathlst
@@ -315,6 +308,55 @@ class experiment(sonictower):
 
 
 
+    
+def calc_pearsonr(sonicT, tb, spatial=True):
+    if spatial:
+        perturb = create_tst_pertubations_spmm(tb, showbar=False)
+    else:
+        perturb = create_tst_pertubations_mm(tb, showbar=False)
+        
+    coef_array = np.empty(tb[1].shape)
+    for j in range(0, coef_array.shape[0]):
+        if j%10 == 0:
+            print(j, end=" ")
+        for k in range(0, coef_array.shape[1]):
+            perturb_pix = perturb[:,j,k]
+            irg_perturb = create_tst_mean(sonicT,5, showbar=False)
+
+
+
+            out_coeflst =[]
+            dif_len = np.abs(len(irg_perturb)-len(perturb_pix))
+            if len(irg_perturb) > len(perturb_pix):
+                for i in range(0,dif_len):
+                    coef = np.corrcoef(irg_perturb[i:len(irg_perturb)-dif_len+i],perturb_pix)
+                    out_coeflst.append(coef[0,1])
+            elif len(irg_perturb) < len(perturb_pix):
+                for i in range(0,dif_len):
+                    coef = np.corrcoef(irg_perturb,perturb_pix[i:len(perturb_pix)-dif_len+i])
+                    out_coeflst.append(coef[0,1])
+            else:
+                coef = np.corrcoef(irg_perturb,perturb_pix)
+                out_coeflst.append(coef[0,1])
+
+            coef_lst = np.array(out_coeflst)
+            coef_array[j,k] = np.max(coef_lst)
+    return(coef_array)    
+     
+
+def rolling_3d_window(arr, ws, ol, dim=0):
+    bar = progressbar.ProgressBar(maxval=arr.shape[dim], widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
+    bar.start()
+    bar_iterator = 0
+    mvwd_out = []
+    for i in range(0, arr.shape[dim]):
+        mvwd = moving_window_array(arr[i], window_size=ws, overlap=ol)
+        mvwd_resh = np.reshape(mvwd,(arr.shape[1]-ol,arr.shape[2]-ol, ws, ws))
+        tb_rw_mean =np.nanmean(mvwd_resh, (2,3))
+        mvwd_out.append(tb_rw_mean)
+        bar.update(bar_iterator+1)
+        bar_iterator += 1
+    return(mvwd_out)
     
     
      
