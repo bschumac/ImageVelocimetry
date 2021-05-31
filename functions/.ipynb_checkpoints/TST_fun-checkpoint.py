@@ -246,7 +246,11 @@ def create_tst_mean(array, moving_mean_size = 60, showbar = True):
 
 def create_tst_pertubations_mm(array, moving_mean_size = 60, showbar = True):
     # creates a temporal moving mean around each layer in array   
-
+    
+    if moving_mean_size == "all":
+        moving_mean_size = len(array)
+        
+    
     resultarr = np.zeros(np.shape(array))
     if showbar:
         bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
@@ -277,8 +281,11 @@ def create_tst_pertubations_mm(array, moving_mean_size = 60, showbar = True):
 
 
 def create_tst_pertubations_spmm(array, moving_mean_size = 60, showbar = True):
+     
     # creates a spatiotemporal moving mean around each layer in array   
-
+    if moving_mean_size == "all":
+        moving_mean_size = len(array)
+        
     resultarr = np.zeros(np.shape(array))
     if showbar:
         bar = progressbar.ProgressBar(maxval=len(array), widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()]) 
