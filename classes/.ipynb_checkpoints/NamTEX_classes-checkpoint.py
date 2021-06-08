@@ -83,17 +83,24 @@ class experiment(sonictower):
             self.vas_spmean_l = np.nanmean(self.ass_vas[:,40:130,75:165],axis=(1,2))
             self.ws_spmean_l = np.nanmean(self.ass_ws[:,40:130,75:165],axis=(1,2))
 
-            self.uas_spmean_m = np.nanmean(self.ass_uas[:,60:110,95:145],axis=(1,2)) 
-            self.vas_spmean_m = np.nanmean(self.ass_vas[:,60:110,95:145],axis=(1,2))
-            self.ws_spmean_m = np.nanmean(self.ass_ws[:,60:110,95:145],axis=(1,2))
+            self.uas_spmean_m = np.nanmean(self.ass_uas[:,75:185,75:135],axis=(1,2)) 
+            self.vas_spmean_m = np.nanmean(self.ass_vas[:,75:185,75:135],axis=(1,2))
+            self.ws_spmean_m = np.nanmean(self.ass_ws[:,75:185,75:135],axis=(1,2))
         else:
             self.uas_spmean_l = np.nanmean(self.ass_uas[:,80:320,130:390],axis=(1,2)) 
             self.vas_spmean_l = np.nanmean(self.ass_vas[:,80:320,130:390],axis=(1,2))
             self.ws_spmean_l = np.nanmean(self.ass_ws[:,80:320,130:390],axis=(1,2))
-
-            self.uas_spmean_m = np.nanmean(self.ass_uas[:,120:280,180:340],axis=(1,2)) 
-            self.vas_spmean_m = np.nanmean(self.ass_vas[:,120:280,180:340],axis=(1,2))
-            self.ws_spmean_m = np.nanmean(self.ass_ws[:,120:280,180:340],axis=(1,2))
+            
+            if self.exp_num ==  9: 
+            
+                self.uas_spmean_m = np.nanmean(self.ass_uas[:,270:470,120:270],axis=(1,2)) 
+                self.vas_spmean_m = np.nanmean(self.ass_vas[:,270:470,120:270],axis=(1,2))
+                self.ws_spmean_m = np.nanmean(self.ass_ws[:,270:470,120:270],axis=(1,2))
+            else:
+                self.uas_spmean_m = np.nanmean(self.ass_uas[:,150:350,175:375],axis=(1,2)) 
+                self.vas_spmean_m = np.nanmean(self.ass_vas[:,150:350,175:375],axis=(1,2))
+                self.ws_spmean_m = np.nanmean(self.ass_ws[:,150:350,175:375],axis=(1,2))
+                
             
         self.ativ_means = {"uas_spmean_l":self.uas_spmean_l, "vas_spmean_l":self.vas_spmean_l, "ws_spmean_l": self.ws_spmean_l, 
                            "uas_spmean_m":self.uas_spmean_m, "vas_spmean_m":self.vas_spmean_m, "ws_spmean_m":self.ws_spmean_m}
