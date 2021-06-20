@@ -108,12 +108,8 @@ def calcwinddirection(u,v):
 
     return(np.round(erg_dir_deg_pos,2))
 
-def calc_dir (u, v):
-    wind_abs = np.sqrt(u*u + v*v)
-    wind_dir_trig_to = np.arctan2(u/wind_abs, v/wind_abs) 
-    wind_dir_trig_to_degrees = wind_dir_trig_to * 180/np.pi
-    wind_dir_trig_from_degrees = wind_dir_trig_to_degrees + 180
-    wind_dir_cardinal = 90 - wind_dir_trig_from_degrees
+def calc_winddir (u, v):
+    wind_dir_cardinal = np.mod(180+np.rad2deg(np.arctan2(u, v)),360)
     return(wind_dir_cardinal)
 
 
