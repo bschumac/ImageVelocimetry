@@ -108,6 +108,15 @@ def calcwinddirection(u,v):
 
     return(np.round(erg_dir_deg_pos,2))
 
+def calc_dir (u, v):
+    wind_abs = np.sqrt(u^2 + v_ms^2)
+    wind_dir_trig_to = atan2(u/wind_abs, v/wind_abs) 
+    wind_dir_trig_to_degrees = wind_dir_trig_to * 180/np.pi
+    wind_dir_trig_from_degrees = wind_dir_trig_to_degrees + 180
+    wind_dir_cardinal = 90 - wind_dir_trig_from_degrees
+    return(wind_dir_cardinal)
+
+
 
 def calcwindspeed(v,u): 
     ws = np.sqrt((u*u)+(v*v))
