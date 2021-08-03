@@ -93,7 +93,62 @@ def interpolate_nan(arr):
     bar.finish()
     return(out_array)
 
+def mqd(image_a, image_b, correlation_method = 'circular'):
+    '''
+    FFT accelarated minimum quadratic differences correlation.
+    MQD, at its simplest, can be calculated by corr[x,y] = (im1[x,y] - im2[x-u, y-v])^2.
+    However, looping through the interoogation windows is expensive, so FFTs
+    are used to speed up the process. Using FOIL, we can break down the equation
+    to im1^2  - 2(im1*im2) + im2^2, making its application much easier.
+    
+    Parameters
+    ----------
+    image_a : 3d np.ndarray, first dimension is the number of windows,
+        and two last dimensions are interrogation windows of the first image
 
+    image_b : similar
+
+    correlation_method : string
+        one of the three methods implemented: 'circular' or 'linear'
+        [default: 'circular].
+    
+    '''
+    s1 = np.array(image_a.shape[-2:])
+    s2 = np.array(image_b.shape[-2:])
+    image_a = piv_prc.normalize_intensity(image_a)
+    image_b = piv_prc.normalize_intensity(image_b)
+        
+    if correlation_method == 'circular':
+        f2a = rfft2(image_a, axes = (-2, -1))
+        f2b = rfft2(image_b, axes = (-2, -1))
+        corr = fftshift((
+            np.sum(image_a ** 2) # im1^2
+            -2*irfft2(f2a.conj() * f2b).real # -2(im1* im2)
+             + irfft2(f2b.conj() * f2b).real # im2^2; this was an accident that worked :D
+            ), 
+            axes = (-2, -1)
+        )
+        
+    else:
+        size = s1 + s2 - 1
+        fsize = 2 ** np.ceil(np.log2(size)).astype(int)
+        fslice = (
+            slice(0, image_a.shape[0]),
+            slice((fsize[0]-s1[0])//2, (fsize[0]+s1[0])//2),
+            slice((fsize[1]-s1[1])//2, (fsize[1]+s1[1])//2)
+        )
+        f2a = rfft2(image_a, fsize, axes=(-2, -1))
+        f2b = rfft2(image_b, fsize, axes=(-2, -1))        
+        corr = fftshift(
+            np.sum(image_a ** 2) - 2*\
+            irfft2(f2a.conj() * f2b).real +\
+            irfft2(f2b.conj() * f2b).real,
+            axes = (-2, -1)
+        )[fslice]
+    corr *= -1 # invert so gaussian peak fit can work
+    #corr /= (s2[0] * s2[1]) # poor attempt at normalization
+    #corr -= corr.min(axis = 0)
+    return corr
 
 def to_npy_info(dirname, dtype, chunks, axis):
     with open(os.path.join(dirname, 'info'), 'wb') as f:

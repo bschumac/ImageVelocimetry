@@ -141,6 +141,34 @@ plt.close()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 fq_arr = np.array(fq_lst)
 pxx_arr = np.array(pxx_lst)
 fq_mean = np.mean(fq_arr,axis=1)
