@@ -108,6 +108,7 @@ class experiment(sonictower):
         
         # sonic processed
         self.soniclst_sec = [] 
+        self.soniclst_10min = []
         
         self.u_coef_lst = []
         self.v_coef_lst = []
@@ -117,7 +118,8 @@ class experiment(sonictower):
         self.trim_sonictime()
         print("Group sonics to 1Hz")
         self.group_sonics()
-    
+        print("Group sonics to 10 min")
+        self.group_sonics_10min()
     
   
     def trim_sonictime(self):
@@ -154,6 +156,23 @@ class experiment(sonictower):
         for i in range(0,len(self.sonics_trimmed)):
             self.sonics_trimmed[i]['groups'] = groups
             self.soniclst_sec.append(self.sonics_trimmed[i].groupby(self.sonics_trimmed[i]['groups']).mean())
+    
+    def group_sonics_10min(self):
+       
+        #### calc groups ####
+
+        lst = range(0,int(len(self.sonics_trimmed[0])/(self.sonic_log_f+1)))
+        print(int(len(self.sonics_trimmed[0])/(self.sonic_log_f*60*10)))
+        groups = list(itertools.chain.from_iterable(itertools.repeat(x, self.sonic_log_f*60*10) for x in lst))
+        if len(groups) > len(self.sonics_trimmed[0]):
+            groups = groups[:len(self.sonics_trimmed[0])-len(groups)]
+        elif len(groups) < len(self.sonics_trimmed[0]): 
+            last_idx = groups[-1]
+            for i in range(len(self.sonics_trimmed[0])- len(groups)):
+                groups.append(last_idx+1)
+        for i in range(0,len(self.sonics_trimmed)):
+            self.sonics_trimmed[i]['groups'] = groups
+            self.soniclst_10min.append(self.sonics_trimmed[i].groupby(self.sonics_trimmed[i]['groups']).mean())
         
 
 
